@@ -3,8 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="微信视频号解密工具 - 基于 Isaac64 WASM 的密钥流生成器">
-    <title>微信视频号解密工具 - 密钥流生成器</title>
+
+    <!-- SEO 优化 -->
+    <title>微信视频号解密工具 - 在线解密 WeChat Channels Video | Isaac64 WASM</title>
+    <meta name="description" content="免费在线微信视频号视频解密工具，基于 Isaac64 PRNG 算法和官方 WASM 模块，支持浏览器内一键解密，无需上传，保护隐私。WeChat Channels Video Decryption Tool.">
+    <meta name="keywords" content="微信视频号,视频解密,WeChat Channels,Isaac64,WASM,在线解密工具,视频号下载,微信视频解密">
+    <meta name="author" content="Evil0ctal">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://evil0ctal.github.io/WeChat-Channels-Video-File-Decryption/">
+    <meta property="og:title" content="微信视频号解密工具 - 在线解密 WeChat Channels Video">
+    <meta property="og:description" content="免费在线微信视频号视频解密工具，基于 Isaac64 算法，支持浏览器内一键解密，保护隐私安全">
+    <meta property="og:image" content="https://evil0ctal.github.io/WeChat-Channels-Video-File-Decryption/preview.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://evil0ctal.github.io/WeChat-Channels-Video-File-Decryption/">
+    <meta property="twitter:title" content="微信视频号解密工具">
+    <meta property="twitter:description" content="免费在线微信视频号视频解密工具">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://evil0ctal.github.io/WeChat-Channels-Video-File-Decryption/">
+
+    <!-- 结构化数据 (Schema.org) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "微信视频号解密工具",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "CNY"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Evil0ctal",
+        "url": "https://github.com/Evil0ctal"
+      },
+      "description": "基于 Isaac64 PRNG 算法的微信视频号加密视频在线解密工具",
+      "softwareVersion": "2.0",
+      "datePublished": "2025-01-15"
+    }
+    </script>
+
     <style>
         * {
             margin: 0;
@@ -75,19 +121,52 @@
             color: #555;
         }
 
-        .input-group input {
+        .input-group input[type="text"],
+        .input-group input[type="file"] {
             width: 100%;
             padding: 12px;
             font-size: 16px;
             border: 2px solid #e0e0e0;
             border-radius: 6px;
             transition: border-color 0.3s;
+        }
+
+        .input-group input[type="text"] {
             font-family: 'Monaco', 'Menlo', monospace;
         }
 
         .input-group input:focus {
             outline: none;
             border-color: #667eea;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload-area:hover {
+            background: #e9ecef;
+            border-color: #764ba2;
+        }
+
+        .file-upload-area.drag-over {
+            background: #667eea;
+            color: white;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e7f3ff;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #0066cc;
         }
 
         .button-group {
@@ -109,7 +188,7 @@
             gap: 8px;
         }
 
-        button:hover {
+        button:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
@@ -124,6 +203,11 @@
             color: white;
         }
 
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
         .btn-secondary {
             background: #6c757d;
             color: white;
@@ -133,6 +217,42 @@
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .progress-container {
+            display: none;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .progress-text {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #666;
+            text-align: center;
         }
 
         #output {
@@ -172,6 +292,41 @@
 
         .warning {
             color: #ff9800;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 15px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .tech-details {
@@ -310,44 +465,130 @@
                 width: 100%;
                 justify-content: center;
             }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab {
+                flex: 1 1 50%;
+                min-width: 120px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
+        <header class="header">
             <h1>🔐 微信视频号解密工具</h1>
-            <p>基于 Isaac64 WASM 的密钥流生成器</p>
-        </div>
+            <p>基于 Isaac64 WASM 的在线解密工具 - 完全浏览器内处理，保护隐私</p>
+        </header>
 
-        <div class="content">
-            <div class="section">
-                <h2>配置</h2>
-                <div class="input-group">
-                    <label for="decodeKey">Decode Key（解密密钥）</label>
-                    <input
-                        type="text"
-                        id="decodeKey"
-                        placeholder="请输入从 API 响应中获取的 decode_key"
-                        value=""
-                    >
+        <main class="content">
+            <!-- 标签页 -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('decrypt')">
+                    🎬 一键解密
+                </button>
+                <button class="tab" onclick="switchTab('keystream')">
+                    🔑 仅生成密钥流
+                </button>
+            </div>
+
+            <!-- 一键解密标签页 -->
+            <div id="decrypt-tab" class="tab-content active">
+                <div class="section">
+                    <h2>步骤 1：输入解密密钥</h2>
+                    <div class="input-group">
+                        <label for="decodeKeyFull">Decode Key（从 API 响应中获取）</label>
+                        <input
+                            type="text"
+                            id="decodeKeyFull"
+                            placeholder="例如：2136343393"
+                            value=""
+                        >
+                    </div>
                 </div>
-                <div class="button-group">
-                    <button class="btn-primary" onclick="generateKeystream()">
-                        <span>🚀</span>
-                        <span>生成密钥流</span>
-                    </button>
-                    <button class="btn-success" onclick="exportKeystream()" id="exportBtn" disabled>
-                        <span>💾</span>
-                        <span>导出密钥流</span>
-                    </button>
-                    <button class="btn-secondary" onclick="clearOutput()">
-                        <span>🗑️</span>
-                        <span>清空日志</span>
-                    </button>
+
+                <div class="section">
+                    <h2>步骤 2：选择加密视频</h2>
+                    <div class="file-upload-area" id="dropArea" onclick="document.getElementById('videoInput').click()">
+                        <div style="font-size: 48px; margin-bottom: 10px;">📹</div>
+                        <div style="font-size: 16px; font-weight: 500; margin-bottom: 5px;">
+                            点击选择或拖放加密视频文件
+                        </div>
+                        <div style="font-size: 13px; color: #666;">
+                            支持 .mp4 格式，文件不会上传到服务器
+                        </div>
+                    </div>
+                    <input
+                        type="file"
+                        id="videoInput"
+                        accept="video/*"
+                        style="display: none;"
+                        onchange="handleFileSelect(event)"
+                    >
+                    <div id="fileInfo" class="file-info" style="display: none;"></div>
+                </div>
+
+                <div class="section">
+                    <h2>步骤 3：开始解密</h2>
+                    <div class="button-group">
+                        <button class="btn-primary" onclick="decryptVideo()" id="decryptBtn" disabled>
+                            <span>🚀</span>
+                            <span>开始解密</span>
+                        </button>
+                        <button class="btn-success" onclick="downloadDecrypted()" id="downloadBtn" disabled>
+                            <span>💾</span>
+                            <span>下载解密视频</span>
+                        </button>
+                        <button class="btn-secondary" onclick="clearAll()">
+                            <span>🗑️</span>
+                            <span>清空重置</span>
+                        </button>
+                    </div>
+
+                    <!-- 进度条 -->
+                    <div id="progressContainer" class="progress-container">
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill" style="width: 0%">0%</div>
+                        </div>
+                        <div id="progressText" class="progress-text">准备中...</div>
+                    </div>
                 </div>
             </div>
 
+            <!-- 仅生成密钥流标签页 -->
+            <div id="keystream-tab" class="tab-content">
+                <div class="section">
+                    <h2>生成密钥流文件</h2>
+                    <div class="input-group">
+                        <label for="decodeKey">Decode Key（解密密钥）</label>
+                        <input
+                            type="text"
+                            id="decodeKey"
+                            placeholder="请输入从 API 响应中获取的 decode_key"
+                            value=""
+                        >
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-primary" onclick="generateKeystream()">
+                            <span>🚀</span>
+                            <span>生成密钥流</span>
+                        </button>
+                        <button class="btn-success" onclick="exportKeystream()" id="exportBtn" disabled>
+                            <span>💾</span>
+                            <span>导出密钥流</span>
+                        </button>
+                        <button class="btn-secondary" onclick="clearOutput()">
+                            <span>🗑️</span>
+                            <span>清空日志</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作日志 -->
             <div class="section">
                 <h2>操作日志</h2>
                 <div id="output"></div>
@@ -363,7 +604,7 @@
                         <li><strong>加密范围</strong>：仅加密视频前 131,072 bytes（128 KB）</li>
                         <li><strong>解密方式</strong>：XOR 运算（<code>decrypted = encrypted ^ keystream</code>）</li>
                         <li><strong>关键步骤</strong>：密钥流必须经过 <code>reverse()</code> 操作</li>
-                        <li><strong>种子来源</strong>：API 响应中的 <code>decode_key</code> 字段</li>
+                        <li><strong>隐私保护</strong>：所有操作在浏览器本地完成，不上传任何数据</li>
                     </ul>
                 </div>
             </div>
@@ -372,7 +613,7 @@
             <div class="section">
                 <div class="sponsor">
                     <h3>🚀 技术支持</h3>
-                    <p>本项目由 <a href="https://tikhub.io" target="_blank">TikHub.io</a> 提供技术支持</p>
+                    <p>本项目由 <a href="https://tikhub.io" target="_blank" rel="noopener">TikHub.io</a> 提供技术支持</p>
                     <p>TikHub - 专业的社交媒体数据 API 服务平台</p>
                     <p>支持抖音、快手、小红书、微信公众号、微信视频号、TikTok、Instagram、YouTube 等多平台数据获取与分析</p>
                 </div>
@@ -384,23 +625,23 @@
                     <div class="avatar">👨‍💻</div>
                     <div class="details">
                         <h4>作者：Evil0ctal</h4>
-                        <p>GitHub: <a href="https://github.com/Evil0ctal" target="_blank">@Evil0ctal</a></p>
-                        <p>项目地址: <a href="https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption" target="_blank">WeChat-Channels-Video-File-Decryption</a></p>
+                        <p>GitHub: <a href="https://github.com/Evil0ctal" target="_blank" rel="noopener">@Evil0ctal</a></p>
+                        <p>项目地址: <a href="https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption" target="_blank" rel="noopener">WeChat-Channels-Video-File-Decryption</a></p>
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
 
-        <div class="footer">
+        <footer class="footer">
             <p>
                 开源项目 ·
-                <a href="https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption" target="_blank">GitHub</a> ·
+                <a href="https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption" target="_blank" rel="noopener">GitHub</a> ·
                 仅供学习研究使用
             </p>
             <p style="margin-top: 8px; font-size: 12px;">
                 © 2025 Evil0ctal · MIT License
             </p>
-        </div>
+        </footer>
     </div>
 
     <!-- WASM 模块配置 -->
@@ -414,7 +655,24 @@
     <script>
         // 全局变量
         let keystreamData = null;
+        let encryptedVideoFile = null;
+        let decryptedVideoData = null;
         const KEYSTREAM_SIZE = 131072; // 128 KB
+
+        /**
+         * 切换标签页
+         */
+        function switchTab(tabName) {
+            // 更新标签按钮状态
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // 更新内容显示
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
 
         /**
          * 日志输出函数
@@ -426,12 +684,115 @@
         }
 
         /**
+         * 更新进度
+         */
+        function updateProgress(percent, text) {
+            const container = document.getElementById('progressContainer');
+            const fill = document.getElementById('progressFill');
+            const textEl = document.getElementById('progressText');
+
+            container.style.display = 'block';
+            fill.style.width = percent + '%';
+            fill.textContent = Math.round(percent) + '%';
+            textEl.textContent = text;
+        }
+
+        /**
+         * 隐藏进度
+         */
+        function hideProgress() {
+            document.getElementById('progressContainer').style.display = 'none';
+        }
+
+        /**
          * 清空日志
          */
         function clearOutput() {
             document.getElementById('output').innerHTML = '';
             keystreamData = null;
             document.getElementById('exportBtn').disabled = true;
+        }
+
+        /**
+         * 清空所有
+         */
+        function clearAll() {
+            clearOutput();
+            encryptedVideoFile = null;
+            decryptedVideoData = null;
+            document.getElementById('fileInfo').style.display = 'none';
+            document.getElementById('decryptBtn').disabled = true;
+            document.getElementById('downloadBtn').disabled = true;
+            hideProgress();
+            log('<span class="info">✅ 已重置所有状态</span>\n');
+        }
+
+        /**
+         * 文件拖放处理
+         */
+        const dropArea = document.getElementById('dropArea');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => {
+                dropArea.classList.add('drag-over');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => {
+                dropArea.classList.remove('drag-over');
+            }, false);
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }, false);
+
+        /**
+         * 文件选择处理
+         */
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        /**
+         * 处理文件
+         */
+        function handleFile(file) {
+            encryptedVideoFile = file;
+
+            // 显示文件信息
+            const fileInfo = document.getElementById('fileInfo');
+            fileInfo.style.display = 'block';
+            fileInfo.innerHTML = `
+                <strong>✅ 已选择文件:</strong><br>
+                文件名: ${file.name}<br>
+                大小: ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                类型: ${file.type || '未知'}
+            `;
+
+            // 启用解密按钮
+            const decodeKey = document.getElementById('decodeKeyFull').value.trim();
+            if (decodeKey) {
+                document.getElementById('decryptBtn').disabled = false;
+            }
+
+            log(`<span class="success">✅ 已加载文件: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>\n`);
         }
 
         /**
@@ -466,6 +827,30 @@
         }
 
         /**
+         * 下载解密后的视频
+         */
+        function downloadDecrypted() {
+            if (!decryptedVideoData) {
+                alert('⚠️ 请先解密视频！');
+                return;
+            }
+
+            const blob = new Blob([decryptedVideoData], { type: 'video/mp4' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'decrypted_video.mp4';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            log('\n<span class="success">✅ 解密视频已下载</span>');
+            log(`   文件名: decrypted_video.mp4`);
+            log(`   大小: ${(decryptedVideoData.length / 1024 / 1024).toFixed(2)} MB`);
+        }
+
+        /**
          * WASM 回调函数 - 接收生成的密钥流
          */
         window.wasm_isaac_generate = function(ptr, size) {
@@ -488,7 +873,7 @@
         };
 
         /**
-         * 生成密钥流
+         * 生成密钥流（仅密钥流模式）
          */
         async function generateKeystream() {
             clearOutput();
@@ -505,72 +890,328 @@
             log('═══════════════════════════════════════════════════════════\n');
 
             try {
-                // 检查 WASM 模块
-                if (typeof Module === 'undefined' || !Module.WxIsaac64) {
-                    log('<span class="warning">⏳ WASM 模块未就绪，等待加载...</span>');
+                await generateKeystreamInternal(decodeKey);
 
-                    // 等待最多 10 秒
-                    let loaded = false;
-                    for (let i = 0; i < 100; i++) {
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                        if (typeof Module !== 'undefined' && Module.WxIsaac64) {
-                            loaded = true;
-                            log('<span class="success">✅ WASM 模块已加载</span>\n');
-                            break;
-                        }
+                if (keystreamData) {
+                    log('═══════════════════════════════════════════════════════════');
+                    log('<span class="success">🎉 密钥流生成成功！</span>');
+                    log('═══════════════════════════════════════════════════════════\n');
+
+                    log('<span class="info">📊 密钥流信息：</span>');
+                    log(`   大小: ${keystreamData.length.toLocaleString()} bytes (${(keystreamData.length / 1024).toFixed(2)} KB)`);
+                    log(`   前 64 字节:`);
+
+                    for (let i = 0; i < 64; i += 16) {
+                        const chunk = Array.from(keystreamData.slice(i, i + 16))
+                            .map(b => b.toString(16).padStart(2, '0')).join(' ');
+                        log(`     [${i.toString().padStart(5, '0')}]: ${chunk}`);
                     }
 
-                    if (!loaded) {
-                        log('<span class="error">❌ WASM 模块加载超时</span>');
-                        log('   请检查浏览器控制台 (F12) 查看错误信息');
-                        return;
-                    }
+                    log('\n<span class="success">✅ 请点击"导出密钥流"按钮保存文件</span>');
+
+                    // 启用导出按钮
+                    document.getElementById('exportBtn').disabled = false;
                 }
-
-                // 第一步：创建 Isaac64 实例
-                log('<span class="info">步骤 1/3: 创建 Isaac64 实例</span>');
-                const decryptor = new Module.WxIsaac64(decodeKey);
-                log('<span class="success">✅ 实例创建成功</span>\n');
-
-                // 第二步：生成密钥流
-                log(`<span class="info">步骤 2/3: 生成 ${KEYSTREAM_SIZE.toLocaleString()} bytes 密钥流</span>`);
-                await decryptor.generate(KEYSTREAM_SIZE);
-                log('<span class="success">✅ 密钥流生成完成</span>\n');
-
-                // 第三步：清理资源
-                log('<span class="info">步骤 3/3: 清理资源</span>');
-                await decryptor.delete();
-                log('<span class="success">✅ 完成</span>\n');
-
-                // 验证结果
-                if (!keystreamData) {
-                    log('<span class="error">❌ 密钥流数据为空</span>');
-                    return;
-                }
-
-                log('═══════════════════════════════════════════════════════════');
-                log('<span class="success">🎉 密钥流生成成功！</span>');
-                log('═══════════════════════════════════════════════════════════\n');
-
-                log('<span class="info">📊 密钥流信息：</span>');
-                log(`   大小: ${keystreamData.length.toLocaleString()} bytes (${(keystreamData.length / 1024).toFixed(2)} KB)`);
-                log(`   前 64 字节:`);
-
-                for (let i = 0; i < 64; i += 16) {
-                    const chunk = Array.from(keystreamData.slice(i, i + 16))
-                        .map(b => b.toString(16).padStart(2, '0')).join(' ');
-                    log(`     [${i.toString().padStart(5, '0')}]: ${chunk}`);
-                }
-
-                log('\n<span class="success">✅ 请点击"导出密钥流"按钮保存文件</span>');
-                log('<span class="info">💡 导出后可使用 Python 脚本解密视频</span>');
-
-                // 启用导出按钮
-                document.getElementById('exportBtn').disabled = false;
-
             } catch (error) {
                 log(`\n<span class="error">❌ 错误: ${error.message}</span>`);
                 console.error('详细错误:', error);
+            }
+        }
+
+        /**
+         * 内部密钥流生成函数
+         */
+        async function generateKeystreamInternal(decodeKey) {
+            // 检查 WASM 模块
+            if (typeof Module === 'undefined' || !Module.WxIsaac64) {
+                log('<span class="warning">⏳ WASM 模块未就绪，等待加载...</span>');
+
+                // 等待最多 10 秒
+                let loaded = false;
+                for (let i = 0; i < 100; i++) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    if (typeof Module !== 'undefined' && Module.WxIsaac64) {
+                        loaded = true;
+                        log('<span class="success">✅ WASM 模块已加载</span>\n');
+                        break;
+                    }
+                }
+
+                if (!loaded) {
+                    throw new Error('WASM 模块加载超时');
+                }
+            }
+
+            // 第一步：创建 Isaac64 实例
+            log('<span class="info">步骤 1/3: 创建 Isaac64 实例</span>');
+            const decryptor = new Module.WxIsaac64(decodeKey);
+            log('<span class="success">✅ 实例创建成功</span>\n');
+
+            // 第二步：生成密钥流
+            log(`<span class="info">步骤 2/3: 生成 ${KEYSTREAM_SIZE.toLocaleString()} bytes 密钥流</span>`);
+            await decryptor.generate(KEYSTREAM_SIZE);
+            log('<span class="success">✅ 密钥流生成完成</span>\n');
+
+            // 第三步：清理资源
+            log('<span class="info">步骤 3/3: 清理资源</span>');
+            await decryptor.delete();
+            log('<span class="success">✅ 完成</span>\n');
+
+            // 验证结果
+            if (!keystreamData) {
+                throw new Error('密钥流数据为空');
+            }
+        }
+
+        /**
+         * 格式化字节数组为十六进制显示（带ASCII）
+         */
+        function formatHexDump(data, offset, length, bytesPerLine = 16) {
+            let result = '';
+            for (let i = 0; i < length; i += bytesPerLine) {
+                const lineOffset = offset + i;
+                const lineData = data.slice(i, Math.min(i + bytesPerLine, length));
+
+                // 偏移量
+                const offsetStr = lineOffset.toString(16).padStart(8, '0');
+
+                // 十六进制数据
+                const hexStr = Array.from(lineData)
+                    .map(b => b.toString(16).padStart(2, '0'))
+                    .join(' ')
+                    .padEnd(bytesPerLine * 3 - 1, ' ');
+
+                // ASCII 表示
+                const asciiStr = Array.from(lineData)
+                    .map(b => (b >= 32 && b <= 126) ? String.fromCharCode(b) : '.')
+                    .join('');
+
+                result += `${offsetStr}  ${hexStr}  |${asciiStr}|\n`;
+            }
+            return result;
+        }
+
+        /**
+         * 分析 MP4 文件头
+         */
+        function analyzeMp4Header(data) {
+            const analysis = [];
+
+            // Box size (前4字节)
+            const boxSize = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+            analysis.push(`   📦 Box Size: ${boxSize} bytes (0x${boxSize.toString(16)})`);
+
+            // Box type (4-7字节)
+            const boxType = String.fromCharCode(data[4], data[5], data[6], data[7]);
+            analysis.push(`   🏷️  Box Type: '${boxType}' (${Array.from(data.slice(4, 8)).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ')})`);
+
+            // Major brand (8-11字节)
+            const majorBrand = String.fromCharCode(data[8], data[9], data[10], data[11]);
+            analysis.push(`   🎬 Major Brand: '${majorBrand}'`);
+
+            // Minor version (12-15字节)
+            const minorVersion = (data[12] << 24) | (data[13] << 16) | (data[14] << 8) | data[15];
+            analysis.push(`   📌 Minor Version: ${minorVersion} (0x${minorVersion.toString(16).padStart(8, '0')})`);
+
+            // Compatible brands
+            const compatBrands = [];
+            for (let i = 16; i < 32 && i < data.length; i += 4) {
+                const brand = String.fromCharCode(data[i], data[i+1], data[i+2], data[i+3]);
+                if (brand.trim()) compatBrands.push(brand);
+            }
+            if (compatBrands.length > 0) {
+                analysis.push(`   🔗 Compatible Brands: ${compatBrands.join(', ')}`);
+            }
+
+            return analysis.join('\n');
+        }
+
+        /**
+         * 完整解密视频
+         */
+        async function decryptVideo() {
+            if (!encryptedVideoFile) {
+                alert('⚠️ 请先选择加密视频文件！');
+                return;
+            }
+
+            const decodeKey = document.getElementById('decodeKeyFull').value.trim();
+            if (!decodeKey) {
+                alert('⚠️ 请输入 decode_key！');
+                return;
+            }
+
+            clearOutput();
+            document.getElementById('decryptBtn').disabled = true;
+
+            try {
+                log('╔═══════════════════════════════════════════════════════════╗');
+                log('║         微信视频号解密工具 - 完整解密流程                ║');
+                log('╚═══════════════════════════════════════════════════════════╝\n');
+
+                log('<span class="info">📋 解密配置信息:</span>');
+                log(`   🔑 Decode Key: ${decodeKey}`);
+                log(`   📹 输入文件: ${encryptedVideoFile.name}`);
+                log(`   📊 文件大小: ${(encryptedVideoFile.size / 1024 / 1024).toFixed(2)} MB (${encryptedVideoFile.size.toLocaleString()} bytes)`);
+                log(`   🔒 加密范围: 前 131,072 bytes (128 KB)`);
+                log(`   🔐 解密算法: Isaac64 PRNG + XOR\n`);
+
+                // ========== 步骤 1: 生成密钥流 ==========
+                log('┌─────────────────────────────────────────────────────────┐');
+                log('│ 步骤 1/4: 生成 Isaac64 密钥流                           │');
+                log('└─────────────────────────────────────────────────────────┘');
+                updateProgress(10, '正在生成密钥流...');
+
+                await generateKeystreamInternal(decodeKey);
+
+                log('\n<span class="success">✅ 密钥流生成成功</span>');
+                log(`   📊 密钥流大小: ${keystreamData.length.toLocaleString()} bytes`);
+                log(`   🔄 已应用 reverse() 操作`);
+                log(`   📝 密钥流前 32 字节:\n`);
+                log(formatHexDump(keystreamData, 0, 32));
+
+                updateProgress(30, '密钥流生成完成');
+
+                // ========== 步骤 2: 读取并分析加密文件 ==========
+                log('┌─────────────────────────────────────────────────────────┐');
+                log('│ 步骤 2/4: 读取并分析加密视频文件                        │');
+                log('└─────────────────────────────────────────────────────────┘');
+                updateProgress(40, '正在读取加密文件...');
+
+                const arrayBuffer = await encryptedVideoFile.arrayBuffer();
+                const encrypted = new Uint8Array(arrayBuffer);
+
+                log(`\n<span class="info">📂 加密文件信息:</span>`);
+                log(`   文件名: ${encryptedVideoFile.name}`);
+                log(`   文件大小: ${encrypted.length.toLocaleString()} bytes`);
+                log(`   文件类型: ${encryptedVideoFile.type || '未知'}\n`);
+
+                log('<span class="warning">🔒 加密文件头（前 64 字节）:</span>\n');
+                log(formatHexDump(encrypted, 0, 64));
+
+                log('<span class="info">💡 说明: 可以看到文件头已被加密，无法识别为 MP4 格式</span>\n');
+
+                updateProgress(50, '文件读取完成');
+
+                // ========== 步骤 3: XOR 解密 ==========
+                log('┌─────────────────────────────────────────────────────────┐');
+                log('│ 步骤 3/4: 执行 XOR 解密运算                              │');
+                log('└─────────────────────────────────────────────────────────┘');
+                updateProgress(55, '正在执行 XOR 解密...');
+
+                const decryptLen = Math.min(KEYSTREAM_SIZE, encrypted.length);
+                log(`\n<span class="info">🔐 解密参数:</span>`);
+                log(`   加密范围: 前 ${decryptLen.toLocaleString()} bytes (${(decryptLen / 1024).toFixed(2)} KB)`);
+                log(`   未加密范围: ${(encrypted.length - decryptLen).toLocaleString()} bytes (${((encrypted.length - decryptLen) / 1024 / 1024).toFixed(2)} MB)`);
+                log(`   解密算法: decrypted[i] = encrypted[i] XOR keystream[i]\n`);
+
+                // 创建解密后的数组
+                decryptedVideoData = new Uint8Array(encrypted.length);
+
+                // 显示 XOR 运算示例
+                log('<span class="info">📐 XOR 运算示例（前 8 字节）:</span>');
+                for (let i = 0; i < 8; i++) {
+                    const enc = encrypted[i];
+                    const key = keystreamData[i];
+                    const dec = enc ^ key;
+                    log(`   [${i}] 0x${enc.toString(16).padStart(2, '0')} XOR 0x${key.toString(16).padStart(2, '0')} = 0x${dec.toString(16).padStart(2, '0')} ('${String.fromCharCode(dec)}')`);
+                }
+                log('');
+
+                // XOR 前 128KB
+                const startTime = performance.now();
+                for (let i = 0; i < decryptLen; i++) {
+                    decryptedVideoData[i] = encrypted[i] ^ keystreamData[i];
+
+                    // 更新进度
+                    if (i % 10000 === 0) {
+                        const percent = 55 + (i / decryptLen) * 30;
+                        updateProgress(percent, `XOR 解密: ${((i / decryptLen) * 100).toFixed(1)}%`);
+                    }
+                }
+                const endTime = performance.now();
+
+                // 复制剩余未加密部分
+                decryptedVideoData.set(encrypted.slice(decryptLen), decryptLen);
+
+                log(`<span class="success">✅ XOR 解密完成</span>`);
+                log(`   ⏱️  耗时: ${(endTime - startTime).toFixed(2)} ms`);
+                log(`   📊 处理速度: ${(decryptLen / (endTime - startTime) * 1000 / 1024 / 1024).toFixed(2)} MB/s\n`);
+
+                updateProgress(85, '解密运算完成');
+
+                // ========== 步骤 4: 验证解密结果 ==========
+                log('┌─────────────────────────────────────────────────────────┐');
+                log('│ 步骤 4/4: 验证解密结果                                   │');
+                log('└─────────────────────────────────────────────────────────┘');
+                updateProgress(90, '验证解密结果...');
+
+                log('\n<span class="success">🔓 解密后文件头（前 64 字节）:</span>\n');
+                log(formatHexDump(decryptedVideoData, 0, 64));
+
+                // 分析 MP4 文件头
+                log('<span class="info">📋 MP4 文件头分析:</span>');
+                log(analyzeMp4Header(decryptedVideoData));
+                log('');
+
+                // 检查 MP4 'ftyp' 签名 (偏移 4-7)
+                const ftypBytes = decryptedVideoData.slice(4, 8);
+                const ftypString = String.fromCharCode(...ftypBytes);
+
+                log('<span class="info">🔍 MP4 格式验证:</span>');
+                if (ftypString === 'ftyp') {
+                    log(`   <span class="success">✅ 'ftyp' 签名验证通过 @ 偏移 4</span>`);
+                    log(`   <span class="success">✅ 文件格式: MP4 (ISO Base Media)</span>`);
+                    log(`   <span class="success">✅ 解密成功！文件可以正常播放</span>`);
+                } else {
+                    log(`   <span class="error">❌ 未找到 'ftyp' 签名</span>`);
+                    log(`   <span class="warning">检测到: '${ftypString}' (hex: ${Array.from(ftypBytes).map(b => b.toString(16).padStart(2, '0')).join(' ')})</span>`);
+                    log(`   <span class="warning">⚠️  解密可能失败，请检查 decode_key 是否正确</span>`);
+                }
+
+                // 对比加密前后
+                log('\n<span class="info">📊 加密前后对比:</span>');
+                log(`   加密文件前16字节: ${Array.from(encrypted.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' ')}`);
+                log(`   解密文件前16字节: ${Array.from(decryptedVideoData.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' ')}`);
+                log(`   密钥流前16字节:   ${Array.from(keystreamData.slice(0, 16)).map(b => b.toString(16).padStart(2, '0')).join(' ')}\n`);
+
+                updateProgress(100, '解密完成！');
+
+                log('╔═══════════════════════════════════════════════════════════╗');
+                log('║                    🎉 解密完成！                          ║');
+                log('╚═══════════════════════════════════════════════════════════╝\n');
+
+                log('<span class="success">📊 解密统计:</span>');
+                log(`   📁 原始文件: ${encrypted.length.toLocaleString()} bytes`);
+                log(`   🔓 解密范围: ${decryptLen.toLocaleString()} bytes (${(decryptLen / encrypted.length * 100).toFixed(2)}%)`);
+                log(`   ⏱️  总耗时: ${(endTime - startTime).toFixed(2)} ms`);
+                log(`   💾 输出文件: decrypted_video.mp4\n`);
+
+                log('<span class="success">✅ 请点击"下载解密视频"按钮保存文件</span>');
+                log('<span class="info">💡 解密后的视频保存在浏览器内存中，未上传到任何服务器</span>\n');
+
+                // 启用下载按钮
+                document.getElementById('downloadBtn').disabled = false;
+
+                // 2秒后隐藏进度条
+                setTimeout(hideProgress, 2000);
+
+            } catch (error) {
+                log(`\n<span class="error">╔═══════════════════════════════════════════════════════════╗</span>`);
+                log(`<span class="error">║                    ❌ 解密失败                            ║</span>`);
+                log(`<span class="error">╚═══════════════════════════════════════════════════════════╝</span>\n`);
+                log(`<span class="error">错误信息: ${error.message}</span>`);
+                log(`<span class="error">错误堆栈: ${error.stack}</span>\n`);
+                log(`<span class="warning">💡 可能的原因:</span>`);
+                log(`   1. decode_key 不正确`);
+                log(`   2. 文件不是微信视频号加密文件`);
+                log(`   3. 文件已损坏`);
+                log(`   4. WASM 模块未正确加载\n`);
+                console.error('详细错误:', error);
+                hideProgress();
+                alert('解密失败: ' + error.message);
+            } finally {
+                document.getElementById('decryptBtn').disabled = false;
             }
         }
 
@@ -583,7 +1224,7 @@
                 if (typeof Module !== 'undefined' && Module.WxIsaac64) {
                     clearInterval(checkInterval);
                     log('<span class="success">✅ WASM 模块加载成功</span>');
-                    log('<span class="info">👉 请输入 decode_key 并点击"生成密钥流"开始</span>\n');
+                    log('<span class="info">👉 选择"一键解密"标签页开始使用</span>\n');
                 }
             }, 100);
 
@@ -595,6 +1236,16 @@
                     log('   请刷新页面重试，或检查浏览器控制台查看错误');
                 }
             }, 30000);
+
+            // 监听 decode key 输入
+            document.getElementById('decodeKeyFull').addEventListener('input', function() {
+                const decodeKey = this.value.trim();
+                if (decodeKey && encryptedVideoFile) {
+                    document.getElementById('decryptBtn').disabled = false;
+                } else {
+                    document.getElementById('decryptBtn').disabled = true;
+                }
+            });
         });
     </script>
 </body>
