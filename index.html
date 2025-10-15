@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="微信视频号解密工具 - 基于 Isaac64 WASM 的密钥流生成器">
+    <title>微信视频号解密工具 - 密钥流生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #667eea;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            transition: border-color 0.3s;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 20px;
+            min-height: 200px;
+            max-height: 600px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        #output:empty::before {
+            content: '等待操作...';
+            color: #999;
+            font-style: italic;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .error {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .info {
+            color: #0066cc;
+        }
+
+        .warning {
+            color: #ff9800;
+        }
+
+        .tech-details {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+
+        .tech-details h3 {
+            font-size: 16px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .tech-details ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .tech-details li {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .tech-details code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+        }
+
+        .sponsor {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .sponsor h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .sponsor p {
+            font-size: 14px;
+            margin: 8px 0;
+            opacity: 0.95;
+        }
+
+        .sponsor a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+            transition: border-color 0.3s;
+        }
+
+        .sponsor a:hover {
+            border-bottom-color: white;
+        }
+
+        .author-info {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .author-info .avatar {
+            font-size: 40px;
+        }
+
+        .author-info .details h4 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .author-info .details p {
+            font-size: 13px;
+            color: #666;
+            margin: 3px 0;
+        }
+
+        .author-info .details a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .author-info .details a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 微信视频号解密工具</h1>
+            <p>基于 Isaac64 WASM 的密钥流生成器</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h2>配置</h2>
+                <div class="input-group">
+                    <label for="decodeKey">Decode Key（解密密钥）</label>
+                    <input
+                        type="text"
+                        id="decodeKey"
+                        placeholder="请输入从 API 响应中获取的 decode_key"
+                        value=""
+                    >
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="generateKeystream()">
+                        <span>🚀</span>
+                        <span>生成密钥流</span>
+                    </button>
+                    <button class="btn-success" onclick="exportKeystream()" id="exportBtn" disabled>
+                        <span>💾</span>
+                        <span>导出密钥流</span>
+                    </button>
+                    <button class="btn-secondary" onclick="clearOutput()">
+                        <span>🗑️</span>
+                        <span>清空日志</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>操作日志</h2>
+                <div id="output"></div>
+            </div>
+
+            <!-- 技术细节 -->
+            <div class="section">
+                <div class="tech-details">
+                    <h3>🔧 技术细节</h3>
+                    <ul>
+                        <li><strong>加密算法</strong>：Isaac64 PRNG（密码学安全的伪随机数生成器）</li>
+                        <li><strong>实现方式</strong>：使用微信官方 WASM 模块（<code>wasm_video_decode.wasm</code>）</li>
+                        <li><strong>加密范围</strong>：仅加密视频前 131,072 bytes（128 KB）</li>
+                        <li><strong>解密方式</strong>：XOR 运算（<code>decrypted = encrypted ^ keystream</code>）</li>
+                        <li><strong>关键步骤</strong>：密钥流必须经过 <code>reverse()</code> 操作</li>
+                        <li><strong>种子来源</strong>：API 响应中的 <code>decode_key</code> 字段</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 赞助商 -->
+            <div class="section">
+                <div class="sponsor">
+                    <h3>🚀 技术支持</h3>
+                    <p>本项目由 <a href="https://tikhub.io" target="_blank">TikHub.io</a> 提供技术支持</p>
+                    <p>TikHub - 专业的社交媒体数据 API 服务平台</p>
+                    <p>支持抖音、快手、小红书、微信公众号、微信视频号、TikTok、Instagram、YouTube 等多平台数据获取与分析</p>
+                </div>
+            </div>
+
+            <!-- 作者信息 -->
+            <div class="section">
+                <div class="author-info">
+                    <div class="avatar">👨‍💻</div>
+                    <div class="details">
+                        <h4>作者：Evil0ctal</h4>
+                        <p>GitHub: <a href="https://github.com/Evil0ctal" target="_blank">@Evil0ctal</a></p>
+                        <p>项目地址: <a href="https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption" target="_blank">WeChat-Channels-Video-File-Decryption</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                开源项目 ·
+                <a href="https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption" target="_blank">GitHub</a> ·
+                仅供学习研究使用
+            </p>
+            <p style="margin-top: 8px; font-size: 12px;">
+                © 2025 Evil0ctal · MIT License
+            </p>
+        </div>
+    </div>
+
+    <!-- WASM 模块配置 -->
+    <script>
+        window.VTS_WASM_URL = 'wechat_files/wasm_video_decode.wasm';
+        window.MAX_HEAP_SIZE = 33554432;
+    </script>
+    <script src="wechat_files/wasm_video_decode.js"></script>
+
+    <!-- 主程序 -->
+    <script>
+        // 全局变量
+        let keystreamData = null;
+        const KEYSTREAM_SIZE = 131072; // 128 KB
+
+        /**
+         * 日志输出函数
+         */
+        function log(message) {
+            const output = document.getElementById('output');
+            output.innerHTML += message + '\n';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        /**
+         * 清空日志
+         */
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+            keystreamData = null;
+            document.getElementById('exportBtn').disabled = true;
+        }
+
+        /**
+         * 导出密钥流到文件
+         */
+        function exportKeystream() {
+            if (!keystreamData) {
+                alert('⚠️ 请先生成密钥流！');
+                return;
+            }
+
+            // 转换为十六进制字符串
+            const hexString = Array.from(keystreamData)
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join(' ');
+
+            // 创建下载
+            const blob = new Blob([hexString], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'keystream_131072_bytes.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            log('\n<span class="success">✅ 密钥流已导出</span>');
+            log(`   文件名: keystream_131072_bytes.txt`);
+            log(`   大小: ${keystreamData.length.toLocaleString()} bytes`);
+            log(`   格式: 十六进制，空格分隔`);
+        }
+
+        /**
+         * WASM 回调函数 - 接收生成的密钥流
+         */
+        window.wasm_isaac_generate = function(ptr, size) {
+            log('<span class="info">📝 接收 WASM 生成的密钥流</span>');
+            log(`   内存指针: ${ptr}`);
+            log(`   数据大小: ${size.toLocaleString()} bytes`);
+
+            // 创建数组保存密钥流
+            keystreamData = new Uint8Array(size);
+
+            // 从 WASM 内存读取
+            const wasmArray = new Uint8Array(Module.HEAPU8.buffer, ptr, size);
+
+            // 关键步骤：反转数组（微信加密算法要求）
+            keystreamData.set(wasmArray.slice().reverse());
+
+            log('<span class="info">🔄 已应用 reverse() 操作</span>');
+            log(`   前 16 字节: ${Array.from(keystreamData.slice(0, 16))
+                .map(b => b.toString(16).padStart(2, '0')).join(' ')}`);
+        };
+
+        /**
+         * 生成密钥流
+         */
+        async function generateKeystream() {
+            clearOutput();
+
+            const decodeKey = document.getElementById('decodeKey').value.trim();
+
+            if (!decodeKey) {
+                alert('⚠️ 请输入 decode_key！');
+                return;
+            }
+
+            log('═══════════════════════════════════════════════════════════');
+            log(`🔑 Decode Key: ${decodeKey}`);
+            log('═══════════════════════════════════════════════════════════\n');
+
+            try {
+                // 检查 WASM 模块
+                if (typeof Module === 'undefined' || !Module.WxIsaac64) {
+                    log('<span class="warning">⏳ WASM 模块未就绪，等待加载...</span>');
+
+                    // 等待最多 10 秒
+                    let loaded = false;
+                    for (let i = 0; i < 100; i++) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        if (typeof Module !== 'undefined' && Module.WxIsaac64) {
+                            loaded = true;
+                            log('<span class="success">✅ WASM 模块已加载</span>\n');
+                            break;
+                        }
+                    }
+
+                    if (!loaded) {
+                        log('<span class="error">❌ WASM 模块加载超时</span>');
+                        log('   请检查浏览器控制台 (F12) 查看错误信息');
+                        return;
+                    }
+                }
+
+                // 第一步：创建 Isaac64 实例
+                log('<span class="info">步骤 1/3: 创建 Isaac64 实例</span>');
+                const decryptor = new Module.WxIsaac64(decodeKey);
+                log('<span class="success">✅ 实例创建成功</span>\n');
+
+                // 第二步：生成密钥流
+                log(`<span class="info">步骤 2/3: 生成 ${KEYSTREAM_SIZE.toLocaleString()} bytes 密钥流</span>`);
+                await decryptor.generate(KEYSTREAM_SIZE);
+                log('<span class="success">✅ 密钥流生成完成</span>\n');
+
+                // 第三步：清理资源
+                log('<span class="info">步骤 3/3: 清理资源</span>');
+                await decryptor.delete();
+                log('<span class="success">✅ 完成</span>\n');
+
+                // 验证结果
+                if (!keystreamData) {
+                    log('<span class="error">❌ 密钥流数据为空</span>');
+                    return;
+                }
+
+                log('═══════════════════════════════════════════════════════════');
+                log('<span class="success">🎉 密钥流生成成功！</span>');
+                log('═══════════════════════════════════════════════════════════\n');
+
+                log('<span class="info">📊 密钥流信息：</span>');
+                log(`   大小: ${keystreamData.length.toLocaleString()} bytes (${(keystreamData.length / 1024).toFixed(2)} KB)`);
+                log(`   前 64 字节:`);
+
+                for (let i = 0; i < 64; i += 16) {
+                    const chunk = Array.from(keystreamData.slice(i, i + 16))
+                        .map(b => b.toString(16).padStart(2, '0')).join(' ');
+                    log(`     [${i.toString().padStart(5, '0')}]: ${chunk}`);
+                }
+
+                log('\n<span class="success">✅ 请点击"导出密钥流"按钮保存文件</span>');
+                log('<span class="info">💡 导出后可使用 Python 脚本解密视频</span>');
+
+                // 启用导出按钮
+                document.getElementById('exportBtn').disabled = false;
+
+            } catch (error) {
+                log(`\n<span class="error">❌ 错误: ${error.message}</span>`);
+                console.error('详细错误:', error);
+            }
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            log('<span class="info">📦 正在加载 WASM 模块...</span>');
+
+            // 检查 WASM 加载状态
+            const checkInterval = setInterval(function() {
+                if (typeof Module !== 'undefined' && Module.WxIsaac64) {
+                    clearInterval(checkInterval);
+                    log('<span class="success">✅ WASM 模块加载成功</span>');
+                    log('<span class="info">👉 请输入 decode_key 并点击"生成密钥流"开始</span>\n');
+                }
+            }, 100);
+
+            // 30 秒超时
+            setTimeout(function() {
+                clearInterval(checkInterval);
+                if (typeof Module === 'undefined' || !Module.WxIsaac64) {
+                    log('<span class="error">❌ WASM 模块加载超时</span>');
+                    log('   请刷新页面重试，或检查浏览器控制台查看错误');
+                }
+            }, 30000);
+        });
+    </script>
+</body>
+</html>

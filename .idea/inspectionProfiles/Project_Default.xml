@@ -1,0 +1,154 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="DuplicatedCode" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <Languages>
+        <language minSize="2008" name="Python" />
+      </Languages>
+    </inspection_tool>
+    <inspection_tool class="Eslint" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="HttpUrlsUsage" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredUrls">
+        <list>
+          <option value="http://0.0.0.0" />
+          <option value="http://127.0.0.1" />
+          <option value="http://activemq.apache.org/schema/" />
+          <option value="http://cxf.apache.org/schemas/" />
+          <option value="http://java.sun.com/" />
+          <option value="http://javafx.com/fxml" />
+          <option value="http://javafx.com/javafx/" />
+          <option value="http://json-schema.org/draft" />
+          <option value="http://localhost" />
+          <option value="http://maven.apache.org/POM/" />
+          <option value="http://maven.apache.org/xsd/" />
+          <option value="http://primefaces.org/ui" />
+          <option value="http://schema.cloudfoundry.org/spring/" />
+          <option value="http://schemas.xmlsoap.org/" />
+          <option value="http://tiles.apache.org/" />
+          <option value="http://www.ibm.com/webservices/xsd" />
+          <option value="http://www.jboss.com/xml/ns/" />
+          <option value="http://www.jboss.org/j2ee/schema/" />
+          <option value="http://www.nbdatamarket.top" />
+          <option value="http://www.springframework.org/schema/" />
+          <option value="http://www.springframework.org/security/tags" />
+          <option value="http://www.springframework.org/tags" />
+          <option value="http://www.thymeleaf.org" />
+          <option value="http://www.w3.org/" />
+          <option value="http://xmlns.jcp.org/" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="aiohttp" />
+          <option value="aiomysql" />
+          <option value="aiosignal" />
+          <option value="anyio" />
+          <option value="async-timeout" />
+          <option value="attrs" />
+          <option value="bcrypt" />
+          <option value="beautifulsoup4" />
+          <option value="blinker" />
+          <option value="Brotli" />
+          <option value="certifi" />
+          <option value="charset-normalizer" />
+          <option value="click" />
+          <option value="colorama" />
+          <option value="crypto" />
+          <option value="fastapi" />
+          <option value="Flask" />
+          <option value="frozenlist" />
+          <option value="h11" />
+          <option value="h2" />
+          <option value="hpack" />
+          <option value="httpcore" />
+          <option value="httpx" />
+          <option value="hyperframe" />
+          <option value="idna" />
+          <option value="itsdangerous" />
+          <option value="Jinja2" />
+          <option value="Markdown" />
+          <option value="MarkupSafe" />
+          <option value="multidict" />
+          <option value="Naked" />
+          <option value="openai" />
+          <option value="passlib" />
+          <option value="pycryptodome" />
+          <option value="pydantic" />
+          <option value="PyExecJS" />
+          <option value="PyJWT" />
+          <option value="PyMySQL" />
+          <option value="python-multipart" />
+          <option value="pywebio" />
+          <option value="pywebio-battery" />
+          <option value="PyYAML" />
+          <option value="requests" />
+          <option value="rfc3986" />
+          <option value="shellescape" />
+          <option value="six" />
+          <option value="sniffio" />
+          <option value="socksio" />
+          <option value="soupsieve" />
+          <option value="starlette" />
+          <option value="tenacity" />
+          <option value="tornado" />
+          <option value="tqdm" />
+          <option value="typing_extensions" />
+          <option value="ua-parser" />
+          <option value="URLDecoder" />
+          <option value="urllib3" />
+          <option value="user-agents" />
+          <option value="uvicorn" />
+          <option value="Werkzeug" />
+          <option value="yarl" />
+          <option value="opencv-python" />
+          <option value="numpy" />
+          <option value="Pillow" />
+          <option value="sqlalchemy" />
+          <option value="asyncpg" />
+          <option value="redis" />
+          <option value="aiokafka" />
+          <option value="celery" />
+          <option value="zstandard" />
+          <option value="python-jose" />
+          <option value="python-dotenv" />
+          <option value="pydantic-settings" />
+          <option value="aiofiles" />
+          <option value="structlog" />
+          <option value="prometheus-client" />
+          <option value="python-dateutil" />
+          <option value="pytest" />
+          <option value="pytest-asyncio" />
+          <option value="black" />
+          <option value="isort" />
+          <option value="flake8" />
+          <option value="psutil" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8Inspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="E501" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8NamingInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="N803" />
+          <option value="N802" />
+          <option value="N806" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyStubPackagesAdvertiser" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="pandas-stubs==2.3.2.250926" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
