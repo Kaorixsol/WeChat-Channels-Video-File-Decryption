@@ -17,20 +17,77 @@
 
 ## ✨ 特性
 
-- ✅ 使用微信官方 WASM 模块（保证兼容性）
-- ✅ 支持完整视频解密
+- ✅ **浏览器内一键解密** - 无需安装任何软件，直接在网页中完成解密
+- ✅ **完全本地处理** - 视频数据不离开您的设备，100% 保护隐私
+- ✅ 使用微信官方 WASM 模块（保证 100% 兼容性）
+- ✅ 支持完整视频解密（文件大小无限制）
 - ✅ 提供三种使用方式：在线网页版、命令行版、图形界面版
-- ✅ 支持交互模式和命令行参数模式
-- ✅ 包含示例文件和测试数据
+- ✅ 专业级日志输出 - Hex Dump、MP4 分析、XOR 运算展示
+- ✅ 实时进度显示和性能统计
+- ✅ 包含示例文件和详细技术文档
 
 ## 🚀 快速开始
 
 ### 前置要求
 
-- Python 3.x
-- 现代浏览器 (Chrome/Edge/Safari/Firefox)
+- **仅浏览器内解密**：现代浏览器 (Chrome/Edge/Safari/Firefox) - 无需其他依赖
+- **Python 工具**：Python 3.x（仅用于 CLI/GUI 工具）
 
-### 方式一：图形界面（推荐新手）
+### 方式一：在线网页版（⭐ 最推荐 - 零安装）
+
+**完全在浏览器中完成解密，无需安装任何软件！**
+
+#### 🌐 访问在线版本
+
+**GitHub Pages（推荐）：** https://evil0ctal.github.io/WeChat-Channels-Video-File-Decryption/
+
+或本地启动：
+```bash
+python3 -m http.server 8888
+open http://localhost:8888/index.html
+```
+
+#### 📝 使用步骤截图
+
+<img src="screenshots/Index.png" alt="在线解密工具界面" width="600">
+
+**🎬 一键解密模式**（最简单）：
+
+1. **输入 decode_key**
+   - 从 API 响应的 `$.data.object_desc.media[0].decode_key` 字段获取
+   - 例如：`2136343393`
+
+2. **选择加密视频**
+   - 点击上传区域或直接拖放文件
+   - 支持任意大小的 MP4 文件
+   - ⚠️ 文件不会上传到服务器，完全本地处理
+
+3. **开始解密**
+   - 点击 "🚀 开始解密" 按钮
+   - 观看实时解密过程和详细日志
+   - 查看加密/解密文件头对比、XOR 运算示例
+
+4. **下载解密视频**
+   - 点击 "💾 下载解密视频" 保存文件
+   - 视频可直接播放
+
+**🔑 仅生成密钥流模式**（配合 Python 工具使用）：
+
+1. 切换到 "仅生成密钥流" 标签
+2. 输入 `decode_key` 并点击 "生成密钥流"
+3. 点击 "导出密钥流" 下载 `keystream_131072_bytes.txt`
+4. 使用 Python CLI/GUI 工具解密视频
+
+#### ✨ 在线版本特色功能
+
+- 📊 **专业级 Hex Dump 显示** - 类似 `xxd` 命令的格式化输出
+- 🔍 **MP4 文件头深度分析** - Box Size、Type、Brand 等详细信息
+- 📐 **XOR 运算可视化** - 展示每个字节的解密过程
+- 📈 **实时进度条** - 显示解密进度和处理速度
+- 🔒 **加密前后对比** - 直观展示解密效果
+- 💯 **性能统计** - 解密耗时、处理速度等
+
+### 方式二：图形界面（推荐不熟悉命令行的用户）
 
 最简单的使用方式，无需命令行操作：
 
@@ -44,9 +101,7 @@ python3 decrypt_wechat_video_gui.py
 3. 点击"开始解密"按钮
 4. 等待解密完成
 
-![GUI Screenshot](https://via.placeholder.com/600x400?text=GUI+Screenshot)
-
-### 方式二：命令行（推荐进阶用户）
+### 方式三：命令行（推荐进阶用户和自动化场景）
 
 #### 交互模式（推荐）
 
@@ -72,53 +127,24 @@ python3 decrypt_wechat_video_cli.py -i encrypted.mp4 -k keystream.txt -o decrypt
 python3 decrypt_wechat_video_cli.py --help
 ```
 
-### 方式三：在线网页版
-
-#### 步骤 1：生成密钥流
-
-访问在线页面或本地服务器：
-```bash
-# 本地模式
-python3 -m http.server 8888
-open http://localhost:8888/index.html
-
-# 或直接访问 GitHub Pages
-# https://evil0ctal.github.io/WeChat-Channels-Video-File-Decryption/
-```
-
-在网页中：
-1. 输入 `decode_key`（从 API 响应中获取）
-2. 点击 "🚀 生成密钥流"
-3. 点击 "💾 导出密钥流" 下载文件
-
-#### 步骤 2：解密视频
-
-```bash
-# 移动密钥流文件到项目目录
-mv ~/Downloads/keystream_131072_bytes.txt .
-
-# 使用 CLI 或 GUI 工具解密
-python3 decrypt_wechat_video_cli.py
-# 或
-python3 decrypt_wechat_video_gui.py
-```
-
 ## 📁 文件说明
 
 ```
 WeChat-Channels-Video-File-Decryption/
-├── index.html                      # 在线密钥流生成器（GitHub Pages）
-├── decrypt_wechat_video_cli.py     # 命令行解密工具（推荐）
-├── decrypt_wechat_video_gui.py     # 图形界面解密工具（新手友好）
-├── wx_response.json                # API 响应示例（包含 decode_key）
-├── wx_encrypted.mp4                # 示例加密文件
-├── wx_decrypted.mp4                # 示例解密文件
-├── wechat_files/                   # 微信官方 WASM 模块
+├── index.html                      # 🌐 在线一键解密工具（⭐ 推荐）
+├── decrypt_wechat_video_cli.py     # 💻 命令行解密工具
+├── decrypt_wechat_video_gui.py     # 🖥️ 图形界面解密工具
+├── wx_response.json                # 📋 API 响应示例（包含 decode_key）
+├── wx_encrypted.mp4                # 🔒 示例加密文件
+├── wx_decrypted.mp4                # ✅ 示例解密文件
+├── screenshots/                    # 📸 项目截图
+│   └── Index.png                   # 在线工具截图
+├── wechat_files/                   # 📦 微信官方 WASM 模块
 │   ├── wasm_video_decode.wasm      # Isaac64 WASM 模块
 │   ├── wasm_video_decode.js        # WASM 加载器
 │   └── ...
-├── LICENSE                         # MIT 许可证
-└── README.md                       # 本文件
+├── LICENSE                         # 📄 MIT 许可证
+└── README.md                       # 📖 本文件
 ```
 
 ## 🔑 工作原理
@@ -147,7 +173,7 @@ decode_key → Isaac64 WASM → 生成密钥流 → Reverse → XOR 解密 → M
     "object_desc": {
       "media": [{
         "decode_key": "2136343393",  // 这就是解密种子
-        "url": "https://...",
+        "url": "https://...",         // 加密视频下载链接
         "file_size": 14088528
       }]
     }
@@ -155,9 +181,92 @@ decode_key → Isaac64 WASM → 生成密钥流 → Reverse → XOR 解密 → M
 }
 ```
 
+**⚠️ 重要提示：**
+- 微信接口每次请求都会返回**新的加密文件链接**和**新的 decode_key**
+- 即使是同一个视频，每次请求获取的 `url` 和 `decode_key` 都不相同
+- **必须确保** `decode_key` 与 `url` 是同一次 API 响应中获取的，否则解密将失败
+- 如果解密失败，请重新获取 API 响应，确保使用匹配的 key 和文件
+
 ## 📝 使用示例
 
-### 示例 1: GUI 图形界面（最简单）
+### 示例 1: 在线网页版一键解密（⭐ 最推荐）
+
+**完整流程演示：**
+
+1. **访问工具**
+   ```
+   https://evil0ctal.github.io/WeChat-Channels-Video-File-Decryption/
+   ```
+
+2. **解密操作**
+   - 输入 decode_key: `2136343393`
+   - 选择加密视频: `wx_encrypted.mp4` (13.44 MB)
+   - 点击 "🚀 开始解密"
+
+3. **查看详细日志**
+   ```
+   ╔═══════════════════════════════════════════════════════════╗
+   ║         微信视频号解密工具 - 完整解密流程                ║
+   ╚═══════════════════════════════════════════════════════════╝
+
+   📋 解密配置信息:
+      🔑 Decode Key: 2136343393
+      📹 输入文件: wx_encrypted.mp4
+      📊 文件大小: 13.44 MB (14,088,528 bytes)
+      🔒 加密范围: 前 131,072 bytes (128 KB)
+
+   🔒 加密文件头（前 64 字节）:
+   00000000  23 76 6a 16 ff 8f fe 1a 1c a6 cd 5f 99 48 46 ab  |#vj........_.HF.|
+   00000010  d9 09 4e 78 87 c7 22 45 30 27 14 4f 84 d4 fa 05  |..Nx.."E0'.O....|
+   ...
+
+   📐 XOR 运算示例（前 8 字节）:
+      [0] 0x23 XOR 0x23 = 0x00 ('')
+      [1] 0x76 XOR 0x76 = 0x00 ('')
+      [2] 0x6a XOR 0x6a = 0x00 ('')
+      [3] 0x16 XOR 0x36 = 0x20 (' ')
+      [4] 0xff XOR 0x99 = 0x66 ('f')
+      [5] 0x8f XOR 0x74 = 0xfb ('t')
+      [6] 0xfe XOR 0x79 = 0x87 ('y')
+      [7] 0x1a XOR 0x70 = 0x6a ('p')
+
+   🔓 解密后文件头（前 64 字节）:
+   00000000  00 00 00 20 66 74 79 70 69 73 6f 6d 00 00 02 00  |... ftypisom....|
+   00000010  69 73 6f 6d 69 73 6f 32 61 76 63 31 6d 70 34 31  |isomiso2avc1mp41|
+   ...
+
+   📋 MP4 文件头分析:
+      📦 Box Size: 32 bytes (0x20)
+      🏷️  Box Type: 'ftyp'
+      🎬 Major Brand: 'isom'
+      📌 Minor Version: 512
+      🔗 Compatible Brands: isom, iso2, avc1, mp41
+
+   🔍 MP4 格式验证:
+      ✅ 'ftyp' 签名验证通过 @ 偏移 4
+      ✅ 文件格式: MP4 (ISO Base Media)
+      ✅ 解密成功！文件可以正常播放
+
+   📊 解密统计:
+      📁 原始文件: 14,088,528 bytes
+      🔓 解密范围: 131,072 bytes (0.93%)
+      ⏱️  总耗时: 12.45 ms
+      💾 输出文件: decrypted_video.mp4
+   ```
+
+4. **下载视频**
+   - 点击 "💾 下载解密视频"
+   - 文件名: `decrypted_video.mp4`
+   - 可直接播放 ✅
+
+**优势：**
+- ✅ 零安装 - 只需浏览器
+- ✅ 完全本地 - 数据不离开设备
+- ✅ 专业日志 - 深入理解技术原理
+- ✅ 支持大文件 - 无大小限制
+- ✅ 实时进度 - 清晰的处理状态
+
+### 示例 2: GUI 图形界面（推荐不熟悉命令行的用户）
 
 ```bash
 # 启动 GUI
@@ -172,7 +281,7 @@ python3 decrypt_wechat_video_gui.py
 5. 点击"🚀 开始解密"
 6. 等待完成后点击"📂 打开文件夹"查看结果
 
-### 示例 2: CLI 交互模式
+### 示例 3: CLI 交互模式
 
 ```bash
 python3 decrypt_wechat_video_cli.py
@@ -199,7 +308,7 @@ python3 decrypt_wechat_video_cli.py
 请输入输出文件名 (默认: wx_decrypted.mp4):
 ```
 
-### 示例 3: CLI 命令行模式（自动化）
+### 示例 4: CLI 命令行模式（自动化）
 
 ```bash
 # 基本用法
@@ -222,7 +331,7 @@ python3 decrypt_wechat_video_cli.py \
   -o decrypted.mp4
 ```
 
-### 示例 4: 解密已提供的测试文件
+### 示例 5: 解密已提供的测试文件
 
 项目已包含测试文件：
 - `wx_encrypted.mp4` (加密文件)
@@ -238,7 +347,7 @@ python3 decrypt_wechat_video_gui.py
 python3 decrypt_wechat_video_cli.py
 ```
 
-### 示例 5: 解密新视频（完整流程）
+### 示例 6: 解密新视频（完整流程）
 
 1. **获取视频信息**
    ```bash
@@ -251,28 +360,24 @@ python3 decrypt_wechat_video_cli.py
    curl -o my_encrypted_video.mp4 "视频URL"
    ```
 
-3. **生成密钥流**
+3. **解密视频**
 
-   访问在线页面：
-   - https://evil0ctal.github.io/WeChat-Channels-Video-File-Decryption/
+   **方式 A: 在线一键解密（推荐）**
+   ```
+   访问: https://evil0ctal.github.io/WeChat-Channels-Video-File-Decryption/
 
-   或本地启动：
-   ```bash
-   python3 -m http.server 8888
-   open http://localhost:8888/index.html
+   1. 输入你的 decode_key
+   2. 上传 my_encrypted_video.mp4
+   3. 点击 "开始解密"
+   4. 下载解密视频
    ```
 
-   在页面中：
-   - 输入你的 `decode_key`
-   - 点击 "生成密钥流"
-   - 点击 "导出密钥流" 下载文件
-
-4. **解密视频**
+   **方式 B: 生成密钥流 + Python 工具**
    ```bash
-   # GUI 方式
-   python3 decrypt_wechat_video_gui.py
+   # 步骤 1: 在线生成并导出密钥流
+   # 访问网页，切换到"仅生成密钥流"标签
 
-   # 或 CLI 方式
+   # 步骤 2: 使用 Python 工具解密
    python3 decrypt_wechat_video_cli.py \
      -i my_encrypted_video.mp4 \
      -k keystream_131072_bytes.txt \
@@ -337,13 +442,15 @@ xxd -l 32 wx_decrypted.mp4
 
 ## ⚠️ 重要提示
 
-1. **必须使用 reverse() 操作**
-   - 密钥流必须反转才能正确解密
-   - HTML 页面已自动处理此步骤
+1. **decode_key 和加密文件必须匹配** ⭐ 最重要
+   - 微信接口每次请求都会返回新的加密文件链接和 decode_key
+   - 即使是同一个视频，每次请求的 key 和 URL 都不同
+   - **必须确保** decode_key 与加密视频文件来自同一次 API 响应
+   - 使用不匹配的 key 会导致解密失败
 
-2. **decode_key 必须匹配**
-   - 每个视频有唯一的 decode_key
-   - 使用错误的 key 会导致解密失败
+2. **必须使用 reverse() 操作**
+   - 密钥流必须反转才能正确解密
+   - HTML 页面和 Python 工具已自动处理此步骤
 
 3. **只加密前 128KB**
    - 视频的后续部分未加密
@@ -376,25 +483,78 @@ for i in range(decrypt_len):
     decrypted[i] = encrypted[i] ^ keystream[i]
 ```
 
-## 🌐 GitHub Pages 在线使用
+## 🌐 在线工具详解
+
+### 功能特色
+
+#### 🎬 一键解密模式
+
+完全在浏览器中完成视频解密，无需任何额外软件：
+
+**工作流程：**
+```
+用户选择文件（本地） → 输入 decode_key
+    ↓
+浏览器读取文件（不上传）
+    ↓
+WASM 生成密钥流（Isaac64）
+    ↓
+JavaScript 执行 XOR 解密
+    ↓
+浏览器触发文件下载（Blob API）
+```
+
+**技术特点：**
+- 🔒 **完全离线** - 所有数据在浏览器内存中处理
+- ⚡ **高性能** - WASM 加速，处理速度 10+ MB/s
+- 📊 **透明可见** - 完整显示解密过程的每个步骤
+- 🛡️ **安全隐私** - 数据不经过任何服务器
+
+#### 🔑 密钥流生成模式
+
+为 Python CLI/GUI 工具生成密钥流文件：
+
+1. 生成 131,072 字节的 Isaac64 密钥流
+2. 导出为十六进制文本文件
+3. 配合 Python 工具离线解密
 
 ### 部署到 GitHub Pages
 
+**自己部署：**
+
 1. Fork 本仓库或上传到你的 GitHub
-2. 进入仓库设置 Settings → Pages
-3. Source 选择 `main` 分支，目录选择 `/ (root)`
-4. 保存后等待几分钟，访问：`https://your-username.github.io/repo-name/`
+2. 进入仓库设置 **Settings → Pages**
+3. **Source** 选择 `main` 分支，目录选择 `/ (root)`
+4. 保存后等待几分钟
+5. 访问：`https://your-username.github.io/repo-name/`
 
-### 使用在线版本
+**使用官方部署：**
 
-如果项目已部署到 GitHub Pages，可以直接在线使用：
+直接访问：https://evil0ctal.github.io/WeChat-Channels-Video-File-Decryption/
 
-1. 访问在线页面（例如：`https://evil0ctal.github.io/WeChat-Channels-Video-File-Decryption/`）
-2. 输入 `decode_key` 并点击 "🚀 Test Decryption"
-3. 点击 "💾 Export Keystream" 导出密钥流
-4. 下载密钥流文件后，本地运行 `decrypt_full_video.py` 解密
+### 浏览器兼容性
 
-**优势**：无需本地启动 HTTP 服务器，直接在线生成密钥流！
+| 浏览器 | 最低版本 | 说明 |
+|--------|---------|------|
+| Chrome | 57+ | ✅ 完全支持 |
+| Edge | 79+ | ✅ 完全支持 |
+| Firefox | 52+ | ✅ 完全支持 |
+| Safari | 11+ | ✅ 完全支持 |
+| Opera | 44+ | ✅ 完全支持 |
+
+**必需功能：**
+- WebAssembly 支持
+- File API (FileReader)
+- Blob API
+- Async/Await
+
+## 🎯 项目信息
+
+- **作者**: Evil0ctal
+- **项目**: WeChat Channels Video Decryption Tool
+- **GitHub**: https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption
+- **在线工具**: https://evil0ctal.github.io/WeChat-Channels-Video-File-Decryption/
+- **项目赞助方**: [TikHub.io](https://tikhub.io) - 专业的社交媒体数据 API 服务平台
 
 ## 📄 许可证
 
@@ -407,8 +567,3 @@ MIT License
 ## ⚠️ 免责声明
 
 本工具仅供学习和研究使用。请遵守相关法律法规和平台服务条款。
-
----
-
-**最后更新**: 2025-10-15
-**状态**: ✅ 测试通过
