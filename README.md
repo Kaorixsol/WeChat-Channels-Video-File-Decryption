@@ -1,5 +1,28 @@
 # 微信视频号解密工具 / WeChat Channels Video Decryption Tool
 
+<div align="center">
+
+[![GitHub Stars](https://img.shields.io/github/stars/Evil0ctal/WeChat-Channels-Video-File-Decryption?style=flat&logo=github&label=Stars)](https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/Evil0ctal/WeChat-Channels-Video-File-Decryption?style=flat&logo=github&label=Forks)](https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption/network/members)
+[![GitHub Issues](https://img.shields.io/github/issues/Evil0ctal/WeChat-Channels-Video-File-Decryption?style=flat&logo=github&label=Issues)](https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/Evil0ctal/WeChat-Channels-Video-File-Decryption?style=flat&logo=github&label=PRs)](https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption/pulls)
+[![Docker Image CI](https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption/actions/workflows/docker-image.yml/badge.svg)](https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption/actions/workflows/docker-image.yml)
+
+[![Docker Hub](https://img.shields.io/docker/v/evil0ctal/wechat-decrypt-api?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/evil0ctal/wechat-decrypt-api)
+[![Docker Pulls](https://img.shields.io/docker/pulls/evil0ctal/wechat-decrypt-api?logo=docker&color=2496ED)](https://hub.docker.com/r/evil0ctal/wechat-decrypt-api)
+[![Docker Image Size](https://img.shields.io/docker/image-size/evil0ctal/wechat-decrypt-api/latest?logo=docker&label=Image%20Size)](https://hub.docker.com/r/evil0ctal/wechat-decrypt-api)
+
+[![License](https://img.shields.io/github/license/Evil0ctal/WeChat-Channels-Video-File-Decryption?color=blue)](LICENSE)
+[![Contributors](https://img.shields.io/github/contributors/Evil0ctal/WeChat-Channels-Video-File-Decryption?color=orange)](https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption/graphs/contributors)
+[![Last Commit](https://img.shields.io/github/last-commit/Evil0ctal/WeChat-Channels-Video-File-Decryption?logo=github)](https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption/commits/main)
+[![Repo Size](https://img.shields.io/github/repo-size/Evil0ctal/WeChat-Channels-Video-File-Decryption?logo=github)](https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption)
+[![Code Size](https://img.shields.io/github/languages/code-size/Evil0ctal/WeChat-Channels-Video-File-Decryption?logo=github)](https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption)
+[![Top Language](https://img.shields.io/github/languages/top/Evil0ctal/WeChat-Channels-Video-File-Decryption?logo=javascript&color=yellow)](https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption)
+
+</div>
+
+---
+
 一个完整的微信视频号加密视频解密解决方案，基于逆向工程分析实现。本项目使用微信官方的 WebAssembly (WASM) 模块来生成 Isaac64 PRNG 密钥流，并通过 XOR 运算完成视频解密。
 
 ## 📖 项目简介
@@ -138,6 +161,22 @@ python3 decrypt_wechat_video_cli.py --help
 适合需要远程调用、批量处理或集成到其他系统的场景。
 
 #### 🐳 使用 Docker（推荐）
+
+**方式 A: 使用 Docker Hub 镜像（最简单）**
+
+```bash
+# 拉取最新镜像
+docker pull evil0ctal/wechat-decrypt-api:latest
+
+# 运行服务
+docker run -d \
+  --name wechat-decrypt-api \
+  -p 3000:3000 \
+  --shm-size=2gb \
+  evil0ctal/wechat-decrypt-api:latest
+```
+
+**方式 B: 使用 Docker Compose 本地构建**
 
 ```bash
 # 进入 API 服务目录
