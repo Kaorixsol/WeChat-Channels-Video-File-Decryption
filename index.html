@@ -652,10 +652,72 @@
 
     <!-- WASM 模块配置 -->
     <script>
+        // 优先使用本地文件（速度更快）
         window.VTS_WASM_URL = 'wechat_files/wasm_video_decode.wasm';
         window.MAX_HEAP_SIZE = 33554432;
+
+        // 备选微信 CDN 路径（如果本地加载失败）
+        window.VTS_WASM_CDN_URL = "https://aladin.wxqcloud.qq.com/aladin/ffmepeg/video-decode/1.2.46/wasm_video_decode.wasm";
+        window.WASM_USING_CDN = false;
+        window.WASM_LOAD_FAILED = false;
     </script>
-    <script src="wechat_files/wasm_video_decode.js"></script>
+    <!-- 优先使用本地文件加载 JS -->
+    <script
+        src="wechat_files/wasm_video_decode.js"
+        onerror="handleWasmScriptError()"
+    ></script>
+    <script>
+        // 处理 WASM JS 加载失败 - 切换到微信 CDN
+        function handleWasmScriptError() {
+            console.warn('本地 WASM JS 加载失败，切换到微信 CDN...');
+            window.WASM_USING_CDN = true;
+
+            // 尝试加载微信 CDN
+            const cdnScript = document.createElement('script');
+            cdnScript.src = 'https://aladin.wxqcloud.qq.com/aladin/ffmepeg/video-decode/1.2.46/wasm_video_decode.js';
+            cdnScript.onerror = function() {
+                console.error('微信 CDN WASM JS 也加载失败');
+                window.WASM_LOAD_FAILED = true;
+                showWasmLoadError();
+            };
+            document.head.appendChild(cdnScript);
+
+            // 更新 WASM URL 为 CDN 路径
+            window.VTS_WASM_URL = window.VTS_WASM_CDN_URL;
+        }
+
+        // 显示 WASM 加载错误
+        function showWasmLoadError() {
+            const output = document.getElementById('output');
+            if (output) {
+                output.innerHTML = `
+<span class="error">❌ WASM 模块加载失败</span>
+
+<span class="warning">可能的原因：</span>
+1. 本地 WASM 文件缺失（wechat_files/ 目录）
+2. 微信 CDN 网络访问受限
+3. 浏览器阻止了脚本加载（检查控制台）
+
+<span class="info">解决方案：</span>
+
+<span class="success">方案 1：下载本地文件（推荐 - 速度最快）</span>
+从项目仓库下载 wechat_files/ 目录到与 index.html 同级：
+• wasm_video_decode.js
+• wasm_video_decode.wasm
+GitHub: https://github.com/Evil0ctal/WeChat-Channels-Video-File-Decryption
+
+<span class="success">方案 2：使用微信 CDN</span>
+如果本地文件缺失，会自动尝试使用微信 CDN (v1.2.46)：
+• JS: https://aladin.wxqcloud.qq.com/aladin/ffmepeg/video-decode/1.2.46/wasm_video_decode.js
+• WASM: https://aladin.wxqcloud.qq.com/aladin/ffmepeg/video-decode/1.2.46/wasm_video_decode.wasm
+
+<span class="info">💡 提示：</span>
+本地文件加载速度更快，建议优先使用本地部署。
+中国大陆用户如果本地文件不可用，微信 CDN 是可靠的备选方案。
+                `.trim();
+            }
+        }
+    </script>
 
     <!-- 主程序 -->
     <script>
@@ -1225,12 +1287,31 @@
         window.addEventListener('DOMContentLoaded', function() {
             log('<span class="info">📦 正在加载 WASM 模块...</span>');
 
+            // 显示正在使用的资源地址
+            if (window.WASM_USING_CDN) {
+                log('<span class="warning">⚠️  本地文件加载失败，已切换到微信 CDN</span>');
+                log(`<span class="info">   JS: https://aladin.wxqcloud.qq.com/aladin/ffmepeg/video-decode/1.2.46/wasm_video_decode.js</span>`);
+                log(`<span class="info">   WASM: ${window.VTS_WASM_URL}</span>`);
+            } else {
+                log('<span class="info">   使用本地文件（速度更快）</span>');
+                log(`<span class="info">   JS: wechat_files/wasm_video_decode.js</span>`);
+                log(`<span class="info">   WASM: ${window.VTS_WASM_URL}</span>`);
+            }
+            log('');
+
             // 检查 WASM 加载状态
+            let checkCount = 0;
             const checkInterval = setInterval(function() {
+                checkCount++;
+
                 if (typeof Module !== 'undefined' && Module.WxIsaac64) {
                     clearInterval(checkInterval);
                     log('<span class="success">✅ WASM 模块加载成功</span>');
+                    log('<span class="info">   已就绪：Isaac64 PRNG 生成器</span>');
                     log('<span class="info">👉 选择"一键解密"标签页开始使用</span>\n');
+                } else if (checkCount % 10 === 0) {
+                    // 每秒显示一次加载状态
+                    log(`<span class="info">⏳ 加载中... (${checkCount / 10}s)</span>`);
                 }
             }, 100);
 
@@ -1238,8 +1319,26 @@
             setTimeout(function() {
                 clearInterval(checkInterval);
                 if (typeof Module === 'undefined' || !Module.WxIsaac64) {
-                    log('<span class="error">❌ WASM 模块加载超时</span>');
-                    log('   请刷新页面重试，或检查浏览器控制台查看错误');
+                    log('\n<span class="error">═══════════════════════════════════════════</span>');
+                    log('<span class="error">❌ WASM 模块加载超时（30秒）</span>');
+                    log('<span class="error">═══════════════════════════════════════════</span>\n');
+
+                    log('<span class="warning">⚠️  可能的原因：</span>');
+                    log('   1. 网络连接较慢或不稳定');
+                    log('   2. 微信 CDN 访问受限（防火墙/网络策略）');
+                    log('   3. 浏览器阻止了 WASM 加载');
+                    log('   4. 本地 WASM 文件缺失或路径错误\n');
+
+                    log('<span class="info">💡 解决方案：</span>');
+                    log('   1. <strong>刷新页面重试</strong>');
+                    log('   2. 检查浏览器控制台（F12）查看详细错误');
+                    log('   3. 确认可以访问微信 CDN:');
+                    log('      https://aladin.wxqcloud.qq.com/aladin/ffmepeg/video-decode/1.2.46/');
+                    log('   4. 或下载 wechat_files/ 目录到本地使用\n');
+
+                    log('<span class="info">🌐 对于中国大陆用户：</span>');
+                    log('   微信 CDN 通常访问稳定，如加载失败可能是暂时的网络问题。');
+                    log('   建议刷新页面或稍后重试。\n');
                 }
             }, 30000);
 

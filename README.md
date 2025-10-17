@@ -556,6 +556,15 @@ JavaScript 执行 XOR 解密
 - **在线工具**: https://evil0ctal.github.io/WeChat-Channels-Video-File-Decryption/
 - **项目赞助方**: [TikHub.io](https://tikhub.io) - 专业的社交媒体数据 API 服务平台
 
+# 样本备注
+
+1. [微信安装包 v3.9.8.15](https://github.com/tom-snow/wechat-windows-versions/releases/tag/v3.9.8.15)
+2. [wasm\_video\_decode.wasm v1.2.46](https://aladin.wxqcloud.qq.com/aladin/ffmepeg/video-decode/1.2.46/wasm_video_decode.wasm)
+3. [worker\_release.js v1.2.46](https://aladin.wxqcloud.qq.com/aladin/ffmepeg/video-decode/1.2.46/worker_release.js)
+4. [wasm\_video\_decode.js v1.2.46](https://aladin.wxqcloud.qq.com/aladin/ffmepeg/video-decode/1.2.46/wasm_video_decode.js)
+5. [wasm\_video\_decode\_fallback.js v1.2.46](https://aladin.wxqcloud.qq.com/aladin/ffmepeg/video-decode/1.2.46/wasm_video_decode_fallback.js)
+
+
 ## 📄 许可证
 
 MIT License
