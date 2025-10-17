@@ -1,83 +1,87 @@
-name: Build and Push Docker Image
+name: Publish Docker Image
 
 on:
   push:
     branches:
       - main
-      - develop
     tags:
-      - 'v*.*.*'
+      - '*'
     paths:
       - 'api-service/**'
       - '.github/workflows/docker-image.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'api-service/**'
   workflow_dispatch:
+    inputs:
+      name:
+        description: 'Person to greet'
+        required: true
+        default: 'Mona the Octocat'
+      home:
+        description: 'location'
+        required: false
+        default: 'The Octoverse'
 
 env:
-  REGISTRY: docker.io
-  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/wechat-decrypt-api
+  APP_NAME: wechat-decrypt-api
+  DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/wechat-decrypt-api
 
 jobs:
-  build-and-push:
+  main:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
     steps:
-      - name: Checkout repository
+      # git checkout 代码
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整的 git 历史，以便 git describe 工作
 
+      # 设置 QEMU, 后面 docker buildx 依赖此
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
+      # 设置 Docker buildx, 方便构建 Multi platform 镜像
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
-        if: github.event_name != 'pull_request'
+      # 登录 docker hub
+      - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,prefix={{branch}}-
+      # 通过 git 命令获取当前 tag 信息, 存入环境变量 APP_VERSION
+      - name: Generate App Version
+        run: echo APP_VERSION=`git describe --tags --always` >> $GITHUB_ENV
 
-      - name: Build and push Docker image
+      # 构建 Docker 并推送到 Docker hub
+      - name: Build and push
+        id: docker_build
         uses: docker/build-push-action@v5
         with:
           context: ./api-service
           file: ./api-service/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          # 生成多平台镜像
+          platforms: |
+            linux/amd64
+            linux/arm64
+          # docker build arg, 注入 APP_NAME/APP_VERSION
+          build-args: |
+            APP_NAME=${{ env.APP_NAME }}
+            APP_VERSION=${{ env.APP_VERSION }}
+          # 生成两个 docker tag: ${APP_VERSION} 和 latest
+          tags: |
+            ${{ env.DOCKERHUB_REPO }}:latest
+            ${{ env.DOCKERHUB_REPO }}:${{ env.APP_VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # 注意: 如果需要自动更新 Docker Hub 描述，请确保 DOCKERHUB_TOKEN 具有 "Read, Write & Delete" 权限
-      # 或者手动在 Docker Hub 上更新仓库描述
-      # - name: Docker Hub Description
-      #   if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-      #   uses: peter-evans/dockerhub-description@v4
-      #   with:
-      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
-      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
-      #     repository: ${{ env.IMAGE_NAME }}
-      #     readme-filepath: ./api-service/README.md
+      # 自动更新 Docker Hub 描述（从 README.md 同步到 overview）
+      - name: Update Docker Hub Description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ env.DOCKERHUB_REPO }}
+          readme-filepath: ./README.md
+          short-description: "微信视频号解密工具 API 服务 - 基于 Isaac64 PRNG 算法的视频解密服务"
