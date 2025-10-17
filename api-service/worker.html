@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>WeChat Decrypt RPC Worker</title>
+</head>
+<body>
+    <h1>RPC Worker - Ready</h1>
+
+    <!-- WASM 模块配置 -->
+    <script>
+        // 优先使用本地文件（速度更快，离线可用）
+        window.VTS_WASM_URL = 'wechat_files/wasm_video_decode.wasm';
+        window.MAX_HEAP_SIZE = 33554432;
+
+        // 备选微信 CDN 路径（如果本地加载失败）
+        window.VTS_WASM_CDN_URL = "https://aladin.wxqcloud.qq.com/aladin/ffmepeg/video-decode/1.2.46/wasm_video_decode.wasm";
+        window.WASM_USING_CDN = false;
+        window.WASM_LOAD_FAILED = false;
+
+        // 定义错误处理函数（必须在使用前定义）
+        function handleWasmScriptError() {
+            console.warn('本地 WASM JS 加载失败，切换到微信 CDN...');
+            window.WASM_USING_CDN = true;
+
+            // 尝试加载微信 CDN
+            const cdnScript = document.createElement('script');
+            cdnScript.src = 'https://aladin.wxqcloud.qq.com/aladin/ffmepeg/video-decode/1.2.46/wasm_video_decode.js';
+            cdnScript.onerror = function() {
+                console.error('微信 CDN WASM JS 也加载失败');
+                window.WASM_LOAD_FAILED = true;
+            };
+            document.head.appendChild(cdnScript);
+
+            // 更新 WASM URL 为 CDN 路径
+            window.VTS_WASM_URL = window.VTS_WASM_CDN_URL;
+        }
+
+        // 页面加载完成后记录状态
+        window.addEventListener('DOMContentLoaded', function() {
+            if (window.WASM_USING_CDN) {
+                console.log('使用微信 CDN 加载 WASM 模块');
+            } else {
+                console.log('使用本地文件加载 WASM 模块');
+            }
+        });
+    </script>
+
+    <!-- 优先使用本地文件加载 JS -->
+    <script
+        src="wechat_files/wasm_video_decode.js"
+        onerror="handleWasmScriptError()"
+    ></script>
+
+    <!-- RPC 核心逻辑 -->
+    <script>
+        // 全局变量
+        let keystreamData = null;
+        const KEYSTREAM_SIZE = 131072;
+
+        /**
+         * WASM 回调 - 接收密钥流
+         */
+        window.wasm_isaac_generate = function(ptr, size) {
+            keystreamData = new Uint8Array(size);
+            const wasmArray = new Uint8Array(Module.HEAPU8.buffer, ptr, size);
+            keystreamData.set(Array.from(wasmArray).reverse()); // 必须反转
+        };
+
+        /**
+         * RPC 方法：生成密钥流
+         * @param {string|number} decodeKey - 解密密钥
+         * @returns {Promise<string>} Base64 编码的密钥流
+         */
+        window.generateKeystream = async function(decodeKey) {
+            return new Promise((resolve, reject) => {
+                try {
+                    // 等待 WASM 模块加载
+                    const checkWasm = setInterval(() => {
+                        if (typeof Module !== 'undefined' && Module.WxIsaac64) {
+                            clearInterval(checkWasm);
+
+                            try {
+                                // 生成密钥流
+                                keystreamData = null;
+                                const decryptor = new Module.WxIsaac64(decodeKey);
+                                decryptor.generate(KEYSTREAM_SIZE);
+                                decryptor.delete();
+
+                                if (!keystreamData) {
+                                    reject(new Error('密钥流生成失败'));
+                                    return;
+                                }
+
+                                // 转换为 Base64 (分块处理避免堆栈溢出)
+                                let binary = '';
+                                const chunkSize = 8192;
+                                for (let i = 0; i < keystreamData.length; i += chunkSize) {
+                                    const chunk = keystreamData.subarray(i, i + chunkSize);
+                                    binary += String.fromCharCode.apply(null, chunk);
+                                }
+                                const base64 = btoa(binary);
+
+                                resolve(base64);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        }
+                    }, 100);
+
+                    // 30秒超时
+                    setTimeout(() => {
+                        clearInterval(checkWasm);
+                        reject(new Error('WASM 模块加载超时'));
+                    }, 30000);
+
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        };
+
+        /**
+         * RPC 方法：解密视频数据
+         * @param {string} encryptedBase64 - Base64 编码的加密视频数据
+         * @param {string} keystreamBase64 - Base64 编码的密钥流
+         * @returns {string} Base64 编码的解密后数据
+         */
+        window.decryptVideo = function(encryptedBase64, keystreamBase64) {
+            try {
+                // Base64 → Uint8Array
+                const encrypted = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+                const keystream = Uint8Array.from(atob(keystreamBase64), c => c.charCodeAt(0));
+
+                // XOR 解密
+                const decryptLen = Math.min(KEYSTREAM_SIZE, encrypted.length);
+                const decrypted = new Uint8Array(encrypted.length);
+
+                for (let i = 0; i < decryptLen; i++) {
+                    decrypted[i] = encrypted[i] ^ keystream[i];
+                }
+
+                // 复制未加密部分
+                for (let i = decryptLen; i < encrypted.length; i++) {
+                    decrypted[i] = encrypted[i];
+                }
+
+                // Uint8Array → Base64 (分块处理避免堆栈溢出)
+                let binary = '';
+                const chunkSize = 8192;
+                for (let i = 0; i < decrypted.length; i += chunkSize) {
+                    const chunk = decrypted.subarray(i, i + chunkSize);
+                    binary += String.fromCharCode.apply(null, chunk);
+                }
+                return btoa(binary);
+
+            } catch (error) {
+                throw new Error(`解密失败: ${error.message}`);
+            }
+        };
+
+        /**
+         * RPC 方法：检查 WASM 状态
+         */
+        window.checkWasmStatus = function() {
+            return {
+                loaded: typeof Module !== 'undefined' && Module.WxIsaac64 !== undefined,
+                timestamp: new Date().toISOString()
+            };
+        };
+
+        // 页面加载完成
+        console.log('RPC Worker initialized');
+    </script>
+</body>
+</html>

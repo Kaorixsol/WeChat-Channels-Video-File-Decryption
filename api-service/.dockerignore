@@ -1,0 +1,47 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+README.md
+*.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+test
+tests
+*.test.js
+*.spec.js
+
+# Logs
+logs
+*.log
+
+# Environment
+.env
+.env.*
+
+# Temporary files
+tmp
+temp
+*.tmp

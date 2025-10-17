@@ -11,17 +11,20 @@
 - 🔑 **密钥流生成**：基于 API 响应中的 `decode_key` 种子值生成 131,072 字节的密钥流
 - 🔄 **关键步骤**：密钥流必须经过 `reverse()` 操作（这是成功解密的关键）
 - ⚡ **XOR 解密**：对视频前 128 KB 执行 XOR 运算，还原原始 MP4 数据
-- 🎯 **多平台支持**：提供在线网页版、命令行工具、图形界面三种使用方式
+- 🎯 **多平台支持**：提供在线网页版、命令行工具、图形界面、RESTful API 四种使用方式
 
-**技术栈：** JavaScript (WASM), Python 3.x, tkinter, HTML5
+**技术栈：** JavaScript (WASM), Python 3.x, Node.js, tkinter, HTML5, Docker
 
 ## ✨ 特性
 
 - ✅ **浏览器内一键解密** - 无需安装任何软件，直接在网页中完成解密
 - ✅ **完全本地处理** - 视频数据不离开您的设备，100% 保护隐私
+- ✅ **RESTful API 服务** - Docker 容器化部署，支持远程调用和批量处理
+- ✅ **本地优先架构** - API 服务内置 WASM 文件，优先使用本地加载（速度更快，离线可用）
+- ✅ **智能降级机制** - 本地文件加载失败时自动切换到微信 CDN，确保服务可用性
 - ✅ 使用微信官方 WASM 模块（保证 100% 兼容性）
 - ✅ 支持完整视频解密（文件大小无限制）
-- ✅ 提供三种使用方式：在线网页版、命令行版、图形界面版
+- ✅ 提供四种使用方式：在线网页版、命令行版、图形界面版、API 服务
 - ✅ 专业级日志输出 - Hex Dump、MP4 分析、XOR 运算展示
 - ✅ 实时进度显示和性能统计
 - ✅ 包含示例文件和详细技术文档
@@ -32,6 +35,7 @@
 
 - **仅浏览器内解密**：现代浏览器 (Chrome/Edge/Safari/Firefox) - 无需其他依赖
 - **Python 工具**：Python 3.x（仅用于 CLI/GUI 工具）
+- **API 服务**：Node.js 16+ 或 Docker（仅用于 RESTful API）
 
 ### 方式一：在线网页版（⭐ 最推荐 - 零安装）
 
@@ -50,6 +54,8 @@ open http://localhost:8888/index.html
 #### 📝 使用步骤截图
 
 <img src="screenshots/Index.png" alt="在线解密工具界面" width="600">
+
+**在线工具界面**
 
 **🎬 一键解密模式**（最简单）：
 
@@ -127,6 +133,106 @@ python3 decrypt_wechat_video_cli.py -i encrypted.mp4 -k keystream.txt -o decrypt
 python3 decrypt_wechat_video_cli.py --help
 ```
 
+### 方式四：RESTful API 服务（推荐批量处理和集成使用）
+
+适合需要远程调用、批量处理或集成到其他系统的场景。
+
+#### 🐳 使用 Docker（推荐）
+
+```bash
+# 进入 API 服务目录
+cd api-service
+
+# 使用 Docker Compose 启动
+docker-compose up -d
+
+# 查看服务状态
+docker-compose ps
+
+# 查看日志
+docker-compose logs -f
+```
+
+#### 📦 或直接使用 Node.js
+
+```bash
+# 进入 API 服务目录
+cd api-service
+
+# 安装依赖
+npm install
+
+# 启动服务
+npm start
+
+# 开发模式（自动重启）
+npm run dev
+```
+
+#### 📸 API 服务界面
+
+<img src="screenshots/API.png" alt="API 服务交互式文档" width="600">
+
+**API 服务交互式文档页面**
+
+#### 🔌 API 调用示例
+
+**完整解密视频：**
+```bash
+curl -X POST http://localhost:3000/api/decrypt \
+  -F "video=@encrypted.mp4" \
+  -F "decode_key=2136343393" \
+  -o decrypted.mp4
+```
+
+**生成密钥流：**
+```bash
+curl -X POST http://localhost:3000/api/keystream \
+  -H "Content-Type: application/json" \
+  -d '{"decode_key": "2136343393"}'
+```
+
+**查看完整 API 文档：**
+```bash
+# 浏览器访问文档页面
+open http://localhost:3000
+
+# 或获取 JSON 格式的服务信息
+curl http://localhost:3000/api/info
+```
+
+#### ✨ API 服务特性
+
+访问 `http://localhost:3000` 将显示一个漂亮的交互式文档页面，包含：
+
+- 🎨 **美观界面** - 渐变色设计、代码高亮、响应式布局
+- 📊 **实时状态** - WASM 模块健康检查和服务信息
+- 🔌 **完整文档** - 所有 API 端点的详细说明和参数
+- 💡 **代码示例** - Python、JavaScript/Node.js 等多种语言
+- ⚡ **本地优先** - 内置 WASM 文件，优先使用本地加载（速度更快）
+- 🛡️ **智能降级** - 本地文件加载失败时自动切换到微信 CDN
+- 🐳 **容器化** - Docker 镜像包含完整 WASM 文件，开箱即用
+- 🔒 **离线可用** - 即使没有网络也能正常工作
+
+**Python 调用示例：**
+```python
+import requests
+
+# 解密视频
+url = 'http://localhost:3000/api/decrypt'
+files = {'video': open('encrypted.mp4', 'rb')}
+data = {'decode_key': '2136343393'}
+
+response = requests.post(url, files=files, data=data)
+
+if response.status_code == 200:
+    with open('decrypted.mp4', 'wb') as f:
+        f.write(response.content)
+    print('✅ 解密成功')
+```
+
+📚 详细文档请查看：[api-service/README.md](api-service/README.md)
+
 ## 📁 文件说明
 
 ```
@@ -134,15 +240,30 @@ WeChat-Channels-Video-File-Decryption/
 ├── index.html                      # 🌐 在线一键解密工具（⭐ 推荐）
 ├── decrypt_wechat_video_cli.py     # 💻 命令行解密工具
 ├── decrypt_wechat_video_gui.py     # 🖥️ 图形界面解密工具
+├── api-service/                    # 🚀 RESTful API 服务
+│   ├── server.js                   #    Express API 服务器
+│   ├── worker.html                 #    RPC Worker (浏览器 WASM 执行)
+│   ├── docs.html                   #    交互式 API 文档页面
+│   ├── wechat_files/               #    内置 WASM 文件（本地优先加载）
+│   │   ├── wasm_video_decode.wasm  #    Isaac64 WASM 模块（3.8 MB）
+│   │   ├── wasm_video_decode.js    #    WASM 加载器（175 KB）
+│   │   └── ...                     #    其他 WASM 相关文件
+│   ├── package.json                #    依赖配置
+│   ├── Dockerfile                  #    Docker 构建文件
+│   ├── docker-compose.yml          #    Docker Compose 配置
+│   └── README.md                   #    API 服务文档
 ├── wx_response.json                # 📋 API 响应示例（包含 decode_key）
 ├── wx_encrypted.mp4                # 🔒 示例加密文件
 ├── wx_decrypted.mp4                # ✅ 示例解密文件
 ├── screenshots/                    # 📸 项目截图
-│   └── Index.png                   # 在线工具截图
-├── wechat_files/                   # 📦 微信官方 WASM 模块
-│   ├── wasm_video_decode.wasm      # Isaac64 WASM 模块
-│   ├── wasm_video_decode.js        # WASM 加载器
-│   └── ...
+│   ├── Index.png                   #    在线工具截图
+│   └── API.png                     #    API 服务文档截图
+├── wechat_files/                   # 📦 微信官方 WASM 模块（供 index.html 使用）
+│   ├── wasm_video_decode.wasm      #    Isaac64 WASM 模块
+│   ├── wasm_video_decode.js        #    WASM 加载器
+│   ├── wasm_video_decode_fallback.js #  降级版本
+│   ├── worker_release.js           #    Worker 脚本
+│   └── wasm_video_decode.wat       #    WASM 文本格式（调试用）
 ├── LICENSE                         # 📄 MIT 许可证
 └── README.md                       # 📖 本文件
 ```
