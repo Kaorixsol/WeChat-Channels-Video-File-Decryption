@@ -180,7 +180,39 @@ Error: failed to authorize: failed to fetch anonymous token
 3. 确保 Token 权限包含 `Read, Write, Delete`
 4. 重新生成 Token 并更新 Secret
 
-### 问题 2: 推送失败 (权限问题)
+### 问题 2: Docker Hub 描述更新失败 (Forbidden)
+
+**错误信息**:
+```
+Error: Forbidden
+Run peter-evans/dockerhub-description@v4
+```
+
+**原因**:
+- Docker Hub Access Token 权限不足
+- 该步骤用于自动同步 README 到 Docker Hub
+
+**解决方案**:
+
+**方案 A: 禁用自动更新描述（推荐）**
+- 工作流已自动注释该步骤
+- 镜像构建和发布不受影响
+- 手动在 Docker Hub 更新仓库描述即可
+
+**方案 B: 启用自动更新描述**
+1. 重新生成 Docker Hub Access Token
+2. 确保权限为 `Read, Write & Delete`
+3. 更新 GitHub Secret `DOCKERHUB_TOKEN`
+4. 取消工作流文件中的注释
+
+**手动更新 Docker Hub 描述**:
+1. 登录 https://hub.docker.com/
+2. 进入你的仓库 `evil0ctal/wechat-decrypt-api`
+3. 点击 "Description" 标签
+4. 将 `api-service/README.md` 的内容复制粘贴
+5. 点击 "Update" 保存
+
+### 问题 3: 推送失败 (权限问题)
 
 **错误信息**:
 ```
