@@ -11,7 +11,6 @@ set -e  # 遇到错误立即退出
 SERVICE_NAME="wechat-decrypt-api"
 SERVICE_PORT="8010"
 DEPLOY_DIR="/opt/wechat-decrypt-api"
-SERVICE_USER="wechat-api"
 LOG_DIR="/var/log/wechat-decrypt-api"
 NODE_VERSION="18"  # Node.js版本
 
@@ -85,9 +84,9 @@ install_system_dependencies() {
         apt-get install -y \
             libnss3 \
             libnspr4 \
-            libatk1.0-0 \
-            libatk-bridge2.0-0 \
-            libcups2 \
+            libatk1.0-0t64 \
+            libatk-bridge2.0-0t64 \
+            libcups2t64 \
             libdrm2 \
             libdbus-1-3 \
             libxkbcommon0 \
@@ -98,11 +97,11 @@ install_system_dependencies() {
             libgbm1 \
             libpango-1.0-0 \
             libcairo2 \
-            libasound2 \
-            libatspi2.0-0 \
+            libasound2t64 \
+            libatspi2.0-0t64 \
             fonts-liberation \
             libappindicator3-1 \
-            libgtk-3-0 \
+            libgtk-3-0t64 \
             libxss1 \
             xdg-utils
             
@@ -194,18 +193,6 @@ install_pm2() {
     log_info "PM2安装完成"
 }
 
-# 创建服务用户
-create_service_user() {
-    log_step "创建服务用户..."
-    
-    if ! id "$SERVICE_USER" &>/dev/null; then
-        useradd -r -s /bin/bash -d $DEPLOY_DIR $SERVICE_USER
-        log_info "创建用户: $SERVICE_USER"
-    else
-        log_info "用户已存在: $SERVICE_USER"
-    fi
-}
-
 # 创建目录结构
 create_directories() {
     log_step "创建目录结构..."
@@ -213,10 +200,6 @@ create_directories() {
     mkdir -p $DEPLOY_DIR
     mkdir -p $LOG_DIR
     mkdir -p /etc/systemd/system
-    
-    # 设置权限
-    chown -R $SERVICE_USER:$SERVICE_USER $DEPLOY_DIR
-    chown -R $SERVICE_USER:$SERVICE_USER $LOG_DIR
     
     log_info "目录结构创建完成"
 }
@@ -241,9 +224,6 @@ deploy_application() {
     
     cd $DEPLOY_DIR/app
     
-    # 设置权限
-    chown -R $SERVICE_USER:$SERVICE_USER $DEPLOY_DIR/app
-    
     log_info "应用代码部署完成"
 }
 
@@ -253,12 +233,13 @@ install_app_dependencies() {
     
     cd $DEPLOY_DIR/app
     
-    # 切换到服务用户执行npm install
-    sudo -u $SERVICE_USER npm install --production
+    # 安装npm依赖
+    npm install --production
     
-    # 安装Playwright浏览器
-    log_info "安装Playwright Chromium浏览器..."
-    sudo -u $SERVICE_USER npx playwright install chromium --with-deps
+    # 安装Playwright浏览器（跳过浏览器下载以避免权限问题）
+    log_info "安装Playwright依赖..."
+    export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+    npm install playwright
     
     log_info "应用依赖安装完成"
 }
@@ -273,7 +254,6 @@ module.exports = {
     name: '$SERVICE_NAME',
     script: 'server.js',
     cwd: '$DEPLOY_DIR/app',
-    user: '$SERVICE_USER',
     instances: 1,
     exec_mode: 'fork',
     
@@ -307,7 +287,6 @@ module.exports = {
 };
 EOF
     
-    chown $SERVICE_USER:$SERVICE_USER $DEPLOY_DIR/app/ecosystem.config.js
     log_info "PM2配置文件创建完成"
 }
 
@@ -324,14 +303,12 @@ StartLimitBurst=3
 
 [Service]
 Type=forking
-User=$SERVICE_USER
-Group=$SERVICE_USER
 WorkingDirectory=$DEPLOY_DIR/app
 
 # 环境变量
 Environment=NODE_ENV=production
 Environment=PORT=$SERVICE_PORT
-Environment=HOME=$DEPLOY_DIR
+Environment=PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 # PM2命令
 ExecStart=/usr/bin/pm2 start ecosystem.config.js --no-daemon
@@ -341,13 +318,6 @@ ExecStop=/usr/bin/pm2 stop ecosystem.config.js
 # 重启策略
 Restart=on-failure
 RestartSec=10
-
-# 安全设置
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=$DEPLOY_DIR $LOG_DIR
 
 # 超时设置
 TimeoutStartSec=60
@@ -384,11 +354,11 @@ configure_firewall() {
 start_service() {
     log_step "启动服务..."
     
-    # 首先以服务用户身份启动PM2
-    sudo -u $SERVICE_USER bash -c "cd $DEPLOY_DIR/app && pm2 start ecosystem.config.js"
+    # 首先启动PM2
+    cd $DEPLOY_DIR/app && pm2 start ecosystem.config.js
     
     # 保存PM2进程列表
-    sudo -u $SERVICE_USER pm2 save
+    pm2 save
     
     # 启动systemd服务
     systemctl start $SERVICE_NAME
@@ -402,7 +372,7 @@ start_service() {
     else
         log_error "服务启动失败"
         systemctl status $SERVICE_NAME
-        sudo -u $SERVICE_USER pm2 logs $SERVICE_NAME --lines 20
+        pm2 logs $SERVICE_NAME --lines 20
         exit 1
     fi
 }
@@ -440,7 +410,6 @@ show_deployment_info() {
     echo "服务端口: $SERVICE_PORT"
     echo "部署目录: $DEPLOY_DIR"
     echo "日志目录: $LOG_DIR"
-    echo "服务用户: $SERVICE_USER"
     echo "Node.js版本: $(node --version)"
     echo "PM2版本: $(pm2 --version)"
     echo ""
@@ -456,10 +425,10 @@ show_deployment_info() {
     echo "  查看状态: systemctl status $SERVICE_NAME"
     echo ""
     echo "PM2管理命令:"
-    echo "  查看进程: sudo -u $SERVICE_USER pm2 list"
-    echo "  查看日志: sudo -u $SERVICE_USER pm2 logs $SERVICE_NAME"
-    echo "  重启应用: sudo -u $SERVICE_USER pm2 restart $SERVICE_NAME"
-    echo "  停止应用: sudo -u $SERVICE_USER pm2 stop $SERVICE_NAME"
+    echo "  查看进程: pm2 list"
+    echo "  查看日志: pm2 logs $SERVICE_NAME"
+    echo "  重启应用: pm2 restart $SERVICE_NAME"
+    echo "  停止应用: pm2 stop $SERVICE_NAME"
     echo ""
     echo "日志文件:"
     echo "  应用日志: $LOG_DIR/app.log"
@@ -477,7 +446,6 @@ main() {
     install_system_dependencies
     install_nodejs
     install_pm2
-    create_service_user
     create_directories
     deploy_application
     install_app_dependencies
@@ -493,7 +461,7 @@ main() {
         log_error "部署失败，请检查日志"
         echo ""
         echo "故障排除命令:"
-        echo "  查看PM2日志: sudo -u $SERVICE_USER pm2 logs $SERVICE_NAME"
+        echo "  查看PM2日志: pm2 logs $SERVICE_NAME"
         echo "  查看systemd日志: journalctl -u $SERVICE_NAME -f"
         echo "  查看应用日志: tail -f $LOG_DIR/error.log"
         exit 1
